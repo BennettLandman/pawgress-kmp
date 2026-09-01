@@ -6,7 +6,7 @@ plugins {
 
 android {
     namespace = "com.balandman.pawgress"
-    compileSdk = 35
+    compileSdk = 37
 
     defaultConfig {
         applicationId = "com.balandman.pawgress"

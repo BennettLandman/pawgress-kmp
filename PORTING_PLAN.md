@@ -379,6 +379,17 @@ building a lot more on it, same reasoning as verifying Ktor before Phase 4:
 the real `MainActivity.kt`/iOS entry-point wiring to actually show them.
 Picks up after a real build confirms the resource pipeline above.
 
+**First real build after this checkpoint failed at the AAR metadata check**
+(not a compile error): Compose Multiplatform 1.12.0's Android artifacts
+(`androidx.compose.*:1.12.0`, e.g. `foundation-android`, `ui-android`,
+`runtime-saveable-android`) require compiling against API 37, and both
+`shared` and `androidApp` were still on `compileSdk = 35`. Fixed by bumping
+`compileSdk` to 37 in both modules' `build.gradle.kts` (`targetSdk`/`minSdk`
+left untouched — those are independent of `compileSdk` per Android's own
+docs, and nothing here needs either to change). This may need Android
+Studio to download SDK Platform 37 via its SDK Manager on first sync if
+it's not already installed locally — normally prompted automatically.
+
 ## Phase 6 — iOS app wiring (not started)
 
 Create the actual Xcode project per `iosApp/README.md`, wire up the shared
