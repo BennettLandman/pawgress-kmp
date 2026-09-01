@@ -299,7 +299,7 @@ need registering in Google Cloud Console before real sign-in works, even
 though the code compiles. That's a one-time manual step for Bennett, not
 something Claude can do.
 
-## Phase 5 — UI (in progress: infra + asset lookup done, screens not started)
+## Phase 5 — UI (in progress: infra + asset lookup + MainViewModel + MainScreen done)
 
 All of `ui/*.kt` (MainScreen, CoachScreen, SettingsScreen, TrendsScreen,
 FunFactsScreen, LogSheet, MainViewModel, the art/icon lookup catalogs) needs
@@ -373,11 +373,11 @@ building a lot more on it, same reasoning as verifying Ktor before Phase 4:
   — exercises the full pipeline (codegen → lookup → render), not just
   "compiles with unused files present."
 
-**Not yet touched**: `MainViewModel.kt`, `MainScreen.kt`, `LogSheet.kt`,
-`CoachScreen.kt`, `FunFactsScreen.kt`, `TrendsScreen.kt`,
+**Not yet touched (at that checkpoint)**: `MainViewModel.kt`, `MainScreen.kt`,
+`LogSheet.kt`, `CoachScreen.kt`, `FunFactsScreen.kt`, `TrendsScreen.kt`,
 `SettingsScreen.kt` — roughly 2,500 lines across the biggest screens, plus
 the real `MainActivity.kt`/iOS entry-point wiring to actually show them.
-Picks up after a real build confirms the resource pipeline above.
+Picked up after a real build confirmed the resource pipeline above.
 
 **First real build after this checkpoint failed at the AAR metadata check**
 (not a compile error): Compose Multiplatform 1.12.0's Android artifacts
@@ -404,6 +404,66 @@ real image in the Android smoke test, and the explicit
 derivation is known for. The single biggest unverified-toolchain risk in
 this phase is now cleared — screens can be ported onto this with
 confidence.
+
+**Since that build confirmation (not yet re-verified by a build):**
+
+- A comprehensive audit of every `R.drawable.X` reference across all of
+  LiftLog's `ui/*.kt` + `MainActivity.kt` (92 unique references via
+  `grep -rhoE 'R\.drawable\.[a-zA-Z0-9_]+'`) cross-checked against
+  `composeResources/drawable/` turned up exactly one gap:
+  `ic_trend_graph.xml` lives directly under `res/drawable/`, not matched by
+  the `ic_m_*` glob used for the other line icons during the original
+  migration sweep. Copied it in (checked first for gradient/group/clip-path
+  elements, same as every other icon) — the audit now shows zero missing
+  assets before porting any more screens.
+- `MainViewModel.kt` ported onto `androidx.lifecycle:lifecycle-viewmodel`
+  (`2.11.0`, `api` in commonMain + `export()`ed from each iOS
+  `binaries.framework` block, since Swift/Xcode in Phase 6 will need to see
+  the `ViewModel` type through the compiled framework). Constructor
+  injection (`repo: LiftRepository, syncManager: SyncManager`) replaces
+  `AndroidViewModel(application)`'s `(application as LiftLogApp).repository`
+  pattern, since `AndroidViewModel` has no multiplatform equivalent — the
+  same plain-interface-plus-DI approach used everywhere else in this port.
+  Phase 4's `AuthProvider` redesign pays off concretely here: with
+  `SyncResult.NeedsConsent` gone, the entire
+  `_consentRequest`/`onConsentResult(context, resultOk, data: Intent?)`/
+  `pendingRestore`/`GoogleAuth.resultFromIntent` state machine from the
+  original ViewModel simply doesn't exist in the port.
+- `DateFormats.kt` (new, `ui/` package): hand-written replacement for
+  `java.time.format.DateTimeFormatter`, which has no multiplatform
+  equivalent — `kotlinx-datetime`'s `LocalDate`/`DayOfWeek`/`Month` enums
+  have no locale-aware display-name API in common code. Hardcodes English
+  month/weekday abbreviation and full-name tables (there was never any other
+  locale in play) covering all six exact `DateTimeFormatter.ofPattern(...)`
+  calls found via `grep -rn "DateTimeFormatter\.ofPattern"` across every
+  `ui/*.kt` file: `"h:mm a"`, `"MMM d"`, `"EEEE, MMM d"`,
+  `"MMM d 'at' h:mm a"`, `"EEE"`, `"MMM"`. Only the first three are consumed
+  yet (by `MainScreen.kt`); the last three (`"EEE"`/`"MMM"` for
+  `TrendsScreen.kt`, the `'at'` combo for `SettingsScreen.kt`) wait on those
+  screens' own ports.
+- `MainScreen.kt` ported: the main grid (`MachineTile`, `EmptyState`,
+  `buildSubtitle`) carries over onto the already-ported `MachineArt`/
+  `DifficultyColors`/`GroupColors`/`LocalTileColors`/`GymDay`/
+  `Res.drawable.ic_trend_graph`, plus `DateFormats.weekdayMonthDay()` for the
+  `"EEEE, MMM d"` header. The only real gap: `Icons.Filled.CheckCircle`/
+  `Icons.Filled.Settings` come from `androidx.compose.material.icons`, which
+  Compose Multiplatform ships as a separate artifact
+  (`org.jetbrains.compose.material:material-icons-extended`) under the same
+  `compose.materialIconsExtended` Gradle accessor used for the other
+  `compose.*` aliases already in this file — confirmed the accessor exists
+  and its coordinates via the JetBrains plugin source before adding it, same
+  as every other new dependency in this port. `androidApp`'s smoke-test
+  `MainActivity.kt` has not been touched — `MainScreen.kt` is not wired up
+  to actually render yet, so this is compile-level progress only until the
+  next `assembleDebug`.
+
+**Not yet touched**: `LogSheet.kt`, `CoachScreen.kt`, `FunFactsScreen.kt`,
+`TrendsScreen.kt`, `SettingsScreen.kt`, plus wiring the real `MainActivity.kt`
+(and iOS's entry point) to actually construct `MainViewModel` and show the
+ported screens instead of the current smoke test. `compose.materialIconsExtended`
+is new, unverified toolchain (like the resource pipeline was before it),
+so this is a natural point to get another real `assembleDebug` before
+porting the remaining ~2,200 lines on top of it.
 
 ## Phase 6 — iOS app wiring (not started)
 
