@@ -299,7 +299,7 @@ need registering in Google Cloud Console before real sign-in works, even
 though the code compiles. That's a one-time manual step for Bennett, not
 something Claude can do.
 
-## Phase 5 — UI (all six screens + navigation shell done, pending one more real build)
+## Phase 5 — UI (done, confirmed by a real build)
 
 All of `ui/*.kt` (MainScreen, CoachScreen, SettingsScreen, TrendsScreen,
 FunFactsScreen, LogSheet, MainViewModel, the art/icon lookup catalogs) needs
@@ -583,10 +583,15 @@ same outcome, one fewer import to get wrong on unverified toolchain.
 bumps the three existing `2.8.7` lifecycle dependencies to `2.11.0` to
 match `shared`'s pinned version.
 
-**Not yet build-confirmed**: neither the `AppRoot`-in-commonMain promotion
-nor the `viewModelFactory`/`initializer` wiring has been through a real
-compiler yet -- both are new toolchain surface introduced in the same
-commit. Waiting on one more `assembleDebug` before calling Phase 5 done.
+**Confirmed by a real build.** `assembleDebug` came back `BUILD SUCCESSFUL
+in 13s` with both `:shared:compileDebugKotlinAndroid` and
+`:androidApp:compileDebugKotlin` actually executing (not UP-TO-DATE) --
+real recompilation of both `AppRoot.kt` and the rewritten `MainActivity.kt`.
+This confirms the `AppRoot`-in-commonMain promotion and the
+`viewModelFactory`/`initializer` wiring both resolve for real, the two
+pieces of toolchain this commit introduced with no prior build coverage.
+Phase 5 is done: every original screen, the shared navigation shell, and
+the real Android entry point all compile.
 
 ## Phase 6 — iOS app wiring (not started)
 
@@ -617,9 +622,10 @@ wiring happens, and `IosAuthProvider` is a deliberate stub either way (see
 Phase 4). Everything Phase 5 on is unverified by a real compiler — this
 environment still has no network path to Maven Central/Google's Maven repo,
 so all of Claude's own checking stays structural/static; Bennett verifies by
-building for real. Phase 5 (Compose Multiplatform UI port) is now
-feature-complete -- all six original screens plus the shared `AppRoot`
-navigation shell and the real `MainActivity.kt` wiring -- pending one more
-`assembleDebug` to confirm the `viewModelFactory`/`initializer` pattern and
-the `AppRoot`-in-commonMain promotion both actually compile. Next up after
-that: Phase 6 (the real Xcode project and iOS entry-point wiring).
+building for real. **Phase 5 (Compose Multiplatform UI port) is done and
+confirmed by a real build** -- all six original screens, the shared
+`AppRoot` navigation shell, and the real `MainActivity.kt`
+`viewModelFactory`/`initializer` wiring all compile (`assembleDebug`,
+`BUILD SUCCESSFUL in 13s`, both affected modules' Kotlin compile tasks
+actually re-executing). Next up: Phase 6 (the real Xcode project and iOS
+entry-point wiring).
