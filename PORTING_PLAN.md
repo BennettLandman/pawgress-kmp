@@ -519,13 +519,26 @@ to actually confirm a given member resolves. Sticking to primitives already
 proven by a build (`.ordinal`, `.year`, `.month`, `.plus/minus(Int,
 DateTimeUnit.DAY)`) over newly-researched ones wherever both would work.
 
-**Not yet touched**: `SettingsScreen.kt` (797 lines, the largest remaining
-screen), plus wiring the real `MainActivity.kt` (and iOS's entry point) to
-actually construct `MainViewModel` and show the ported screens instead of
-the current smoke test. It needs one more `DateTimeFormatter` pattern
-(`"MMM d 'at' h:mm a"`, already covered by `DateFormats.monthDayAtTime()`)
-and no other new date-arithmetic primitives, so it's expected to be the
-most mechanical screen left.
+**`SettingsScreen.kt` ported -- all six original screens are now in
+commonMain** (`MainScreen`, `LogSheet`, `CoachScreen`, `FunFactsScreen`,
+`TrendsScreen`, `SettingsScreen`). Mostly mechanical (the
+`"MMM d 'at' h:mm a"` pattern -> `DateFormats.monthDayAtTime()`,
+`credits_photo` -> `Res.drawable`), but one real design decision: "Open
+sheet" used Android's `context.startActivity(Intent(ACTION_VIEW,
+url.toUri()))` via `LocalContext`, with no multiplatform equivalent.
+Pushed up to a new `onOpenUrl: (String) -> Unit` parameter on
+`SettingsScreen`/`GoogleCard`, the same callback-injection pattern already
+used for everything else in this screen and consistent with how
+`AuthProvider`/`ConsentLauncher`/`AppFileStorage` keep platform-only APIs
+out of commonMain. The real `Intent.ACTION_VIEW` call becomes
+`MainActivity.kt`'s job once it's wired up (iOS gets its own
+implementation in Phase 6).
+
+**Not yet touched (not build-confirmed yet either)**: wiring the real
+`MainActivity.kt` (and iOS's entry point) to actually construct
+`MainViewModel`, navigate between all six screens, and supply the
+`onOpenUrl` callback plus the account-picker/consent flows -- replacing
+the current smoke-test screen. This is the last piece of Phase 5.
 
 ## Phase 6 — iOS app wiring (not started)
 
