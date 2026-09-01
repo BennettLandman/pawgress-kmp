@@ -201,7 +201,7 @@ that's not compile confirmation, just dependency resolution. Still need an
 actual iOS compile/link task (or Phase 6's Xcode wiring) before treating
 the iOS side as verified.
 
-## Phase 4 — Auth (in progress: commonMain + Android done; iOS stubbed)
+## Phase 4 — Auth (commonMain + Android done, confirmed by a real build; iOS stubbed)
 
 `sync/GoogleAuth.kt`, `sync/AccountPicker.kt` use Android's
 `play-services-auth` and system account picker — entirely Android-specific.
@@ -282,15 +282,22 @@ doing for real once Phase 6 gives an actual Xcode project and Simulator to
 test against, rather than shipping a guess now. The design is written down
 here so implementing it later is a known shape, not a fresh investigation.
 
-**Android side confirmed by real builds so far.** Not yet re-verified
-specifically for the auth code above — needs another `assembleDebug` (or
-Build → Make) after this lands. `play-services-auth` also needs the OAuth
-client's SHA-1 registered per LiftLog's own `SETUP.md` step 4, but this
-KMP project uses a different package name (`com.balandman.pawgress` vs.
-`com.balandman.liftlog`) — a **new** Android OAuth client (or an added
-package name + SHA-1 on the existing one) will need registering in Google
-Cloud Console before real sign-in works, even once this code compiles.
-That's a one-time manual step for Bennett, not something Claude can do.
+**Android side confirmed by a real build**, including this phase's new
+code specifically: `assembleDebug` came back `BUILD SUCCESSFUL` with
+`:shared:compileDebugKotlinAndroid` actually executing, so `AuthProvider`,
+`SyncManager`, `AndroidAuthProvider`, `ConsentLauncher`/
+`AndroidConsentLauncher`, `AccountPicker`, and the new
+`play-services-auth`/`androidx.activity:activity-ktx` dependencies on
+`shared` all compile for real. This is only a compile check, not a runtime
+one — nothing has actually called `sync()`/`requestConsent()` yet, since
+the smoke-test screen only constructs the objects. `play-services-auth`
+also needs the OAuth client's SHA-1 registered per LiftLog's own
+`SETUP.md` step 4, but this KMP project uses a different package name
+(`com.balandman.pawgress` vs. `com.balandman.liftlog`) — a **new** Android
+OAuth client (or an added package name + SHA-1 on the existing one) will
+need registering in Google Cloud Console before real sign-in works, even
+though the code compiles. That's a one-time manual step for Bennett, not
+something Claude can do.
 
 ## Phase 5 — UI (not started, the biggest remaining chunk)
 
@@ -327,15 +334,20 @@ Program membership from Phase 6.
 
 ---
 
-**Current state**: Phases 0–3 (Android side) done and confirmed by real
-Android Studio builds, including a clean `assembleDebug` after the
-`SheetsApi.kt` import fix. `SyncManager.kt` moved into Phase 4's scope (see
-that phase's note) since its type signature is inseparable from the auth
-mechanism. The iOS side has confirmed dependency resolution (Ktor + kotlinx
-iOS artifacts, Kotlin/Native toolchain all download and commonize cleanly)
-but no confirmed compile yet — that stays open until a real iOS
-link/compile task runs, or Phase 6's Xcode wiring happens. Everything from
-Phase 4 on is unverified by a real compiler — this environment still has no
-network path to Maven Central/Google's Maven repo, so all of Claude's own
-checking stays structural/static; Bennett verifies by building for real.
-Next up: Phase 4 (auth abstraction + `SyncManager.kt`).
+**Current state**: Phases 0–4 all confirmed by real Android Studio builds on
+the Android side — most recently `assembleDebug` succeeding with
+`:shared:compileDebugKotlinAndroid` actually executing after the new
+`AuthProvider`/`SyncManager`/`AndroidAuthProvider` code and its two new
+Gradle dependencies landed. That's compile confirmation only — no runtime
+path (an actual `sync()` call, real Google consent) has been exercised yet,
+since the smoke-test screen only constructs the objects. The iOS side has
+confirmed dependency resolution (Ktor + kotlinx iOS artifacts, Kotlin/Native
+toolchain all download and commonize cleanly) but no confirmed compile —
+that stays open until a real iOS link/compile task runs, or Phase 6's Xcode
+wiring happens, and `IosAuthProvider` is a deliberate stub either way (see
+Phase 4). Everything Phase 5 on is unverified by a real compiler — this
+environment still has no network path to Maven Central/Google's Maven repo,
+so all of Claude's own checking stays structural/static; Bennett verifies by
+building for real. Next up: Phase 5 (Compose Multiplatform UI port) — the
+biggest remaining chunk — unless Bennett would rather wire up real sign-in
+UI first to exercise Phase 4's auth code end to end.
