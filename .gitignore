@@ -1,0 +1,22 @@
+*.apk
+*.hprof
+*.iml
+*.jks
+*.keystore
+.DS_Store
+.cxx
+.externalNativeBuild
+.gradle/
+.kotlin/
+/.idea/
+/*/build/
+/build
+/captures
+/local.properties
+local.properties
+
+# iOS / Xcode
+iosApp/**/*.xcuserstate
+iosApp/**/xcuserdata/
+iosApp/Pods/
+iosApp/**/*.xcworkspace/xcuserdata/
