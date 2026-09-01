@@ -457,13 +457,23 @@ confidence.
   to actually render yet, so this is compile-level progress only until the
   next `assembleDebug`.
 
+**First build after this hit a real compile error**: kotlinx-datetime
+0.6.1 (this project's pinned version) has no `.number` (on `Month`) or
+`.isoDayNumber` (on `DayOfWeek`) -- both properties were added in a later
+kotlinx-datetime release than the one guessed at in `DateFormats.kt`.
+Fixed by switching to plain enum `.ordinal`, which needs no version and
+lines up directly with the lookup tables (both enums declare their entries
+in calendar order). **Confirmed fixed by a follow-up real build** --
+`:shared:compileDebugKotlinAndroid` actually re-executed (not UP-TO-DATE)
+and came back `BUILD SUCCESSFUL in 6s`, with the `compose.materialIconsExtended`
+dependency resolving cleanly (`material-icons-extended-android:1.7.6`, one
+deprecation notice pointing at a future Material Symbols migration --
+informational only, not blocking).
+
 **Not yet touched**: `LogSheet.kt`, `CoachScreen.kt`, `FunFactsScreen.kt`,
 `TrendsScreen.kt`, `SettingsScreen.kt`, plus wiring the real `MainActivity.kt`
 (and iOS's entry point) to actually construct `MainViewModel` and show the
-ported screens instead of the current smoke test. `compose.materialIconsExtended`
-is new, unverified toolchain (like the resource pipeline was before it),
-so this is a natural point to get another real `assembleDebug` before
-porting the remaining ~2,200 lines on top of it.
+ported screens instead of the current smoke test.
 
 ## Phase 6 — iOS app wiring (not started)
 
