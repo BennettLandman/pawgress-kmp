@@ -545,7 +545,14 @@ private fun buildBuckets(log: List<LogEntry>, range: TrendRange, today: LocalDat
             if (log.isEmpty()) return emptyList()
             val firstMonth = log.minOf { GymDay.dayOf(it.loggedAt) }.withDayOfMonth(1)
             val lastMonth = today.withDayOfMonth(1)
-            val span = firstMonth.monthsUntil(lastMonth)
+            // monthsUntil() turned out to be unresolved at kotlinx-datetime
+            // 0.6.1 (real compile error from a build) despite looking present
+            // in the source fetched during research -- .ordinal is the one
+            // Month-arithmetic primitive already proven to compile (the same
+            // fix DateFormats.kt needed), so this sticks to that instead of
+            // trusting the same kind of lookup a second time.
+            val span = (lastMonth.year - firstMonth.year) * 12 +
+                (lastMonth.month.ordinal - firstMonth.month.ordinal)
             (0..span).map { m ->
                 val monthStart = firstMonth.plusMonths(m.toLong())
                 val monthEnd = monthStart.plusMonths(1)

@@ -18,12 +18,14 @@ fun LocalDate.minusDays(days: Long): LocalDate = this.minus(days.toInt(), DateTi
 
 /**
  * The rest of `java.time.LocalDate`'s calendar-navigation API TrendsScreen.kt
- * needs, none of which `kotlinx.datetime.LocalDate` has built in. Every
- * primitive used below (the `LocalDate(year, month, dayOfMonth)` constructor,
- * `.dayOfYear`, `.toEpochDays()`, `DateTimeUnit.MONTH`, `.monthsUntil()`) was
- * checked against the actual kotlinx-datetime 0.6.1 source before use, after
- * DateFormats.kt's `.number`/`.isoDayNumber` guess turned out to be from a
- * later release than this project pins.
+ * needs, none of which `kotlinx.datetime.LocalDate` has built in. The
+ * primitives below (the `LocalDate(year, month, dayOfMonth)` constructor,
+ * `.dayOfYear`, `.toEpochDays()`, `DateTimeUnit.MONTH`) were checked against
+ * kotlinx-datetime 0.6.1's source before use -- though `.monthsUntil()` was
+ * *also* checked that way and still turned out unresolved at this pinned
+ * version (a real compile error), so months-between-two-dates is computed by
+ * hand in TrendsScreen.kt from `.year`/`.month.ordinal` instead, the one
+ * Month-arithmetic primitive actually proven to compile so far.
  */
 fun LocalDate.plusMonths(months: Int): LocalDate = this.plus(months, DateTimeUnit.MONTH)
 fun LocalDate.plusMonths(months: Long): LocalDate = this.plus(months.toInt(), DateTimeUnit.MONTH)
