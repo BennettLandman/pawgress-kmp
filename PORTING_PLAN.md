@@ -170,13 +170,25 @@ means designing its cross-platform shape at the same time as Phase 4's auth
 abstraction, not mechanically swapping types in isolation — so it waits for
 that phase, where it belongs anyway.
 
-**Unverified**: this environment can't compile Ktor's Kotlin/Native
-(`ktor-client-darwin`) or even its Android (`ktor-client-okhttp`) paths any
-more than the rest of this project — same caveat as everything else here.
-`SheetsApi.kt`'s public method signatures didn't change shape (same
-suspend-instead-of-blocking swap throughout), so the risk is concentrated in
-the JSON-building/parsing helpers at the bottom of the file, not the request
-methods themselves.
+**Android side confirmed by a real build, after one real fix**: the first
+Android Studio build after this phase failed with 17 compile errors, all
+"actual type is String/Int/Boolean, but JsonElement was expected" —
+`kotlinx.serialization.json`'s `put(key, String/Number/Boolean)` and
+`add(String/Number/Boolean)` convenience overloads are extension functions,
+not members, so without importing them by name the compiler only saw the
+base `put(String, JsonElement)`/`add(JsonElement)` members and rejected
+every primitive argument passed to `buildJsonObject`/`buildJsonArray`. Fixed
+by adding the two missing imports (`kotlinx.serialization.json.put`,
+`kotlinx.serialization.json.add`) — no logic was wrong, and it built clean
+after that. Also: that same sync auto-upgraded the Gradle wrapper again
+(9.5.0 → 9.7.1) and, notably, added `gradlew`/`gradlew.bat`/
+`gradle/wrapper/gradle-wrapper.jar` — previously this project (like LiftLog)
+had no wrapper scripts checked in, relying on Android Studio to resolve the
+wrapper itself; Android Studio generated them this time, so they're now
+tracked. Harmless, just worth knowing they exist now.
+
+The Kotlin/Native side (`ktor-client-darwin`) is still unverified — same
+caveat as everything else iOS-side in this project.
 
 ## Phase 4 — Auth (not started)
 
