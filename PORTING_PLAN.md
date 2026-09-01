@@ -593,13 +593,65 @@ pieces of toolchain this commit introduced with no prior build coverage.
 Phase 5 is done: every original screen, the shared navigation shell, and
 the real Android entry point all compile.
 
-## Phase 6 — iOS app wiring (not started)
+## Phase 6 — iOS app wiring (in progress: real UI wired, not yet build-confirmed)
 
 Create the actual Xcode project per `iosApp/README.md`, wire up the shared
-framework, and get the smoke-test screen running in Simulator, then on a
-real iPhone via Xcode (free with any Apple ID, but the provisioning profile
-needs re-signing every 7 days without a paid Apple Developer Program
-membership — $99/year unlocks TestFlight and removes that limit).
+framework, and get the app running in Simulator, then on a real iPhone via
+Xcode (free with any Apple ID, but the provisioning profile needs
+re-signing every 7 days without a paid Apple Developer Program membership —
+$99/year unlocks TestFlight and removes that limit).
+
+**Wired so far (not yet build-confirmed — this is the first Kotlin/Native
+compile attempt anything in this project has ever gone through):**
+
+- `shared/src/iosMain/kotlin/com/balandman/pawgress/MainViewController.kt`
+  (new) — the iOS equivalent of `androidApp`'s `MainActivity.kt`: builds a
+  `LiftRepository`/`SyncManager` from `IosAppFileStorage`/`IosAuthProvider`,
+  constructs a `MainViewModel`, and returns a `UIViewController` hosting the
+  shared `AppRoot` via Compose Multiplatform's `ComposeUIViewController` —
+  the same function-per-file pattern Kotlin Multiplatform's own docs use
+  (`fun MainViewController(): UIViewController = ComposeUIViewController { ... }`,
+  called from Swift as `MainViewControllerKt.MainViewController()`).
+  Replaces the old Phase 2/4 smoke test that only listed the coach roster as
+  plain SwiftUI text.
+- `AppRoot`'s two platform callbacks resolved with zero hand-written
+  Foundation/UIKit interop, deliberately, given this project's two prior
+  guessed-API build breaks (see Phase 5): `onOpenUrl` uses Compose's own
+  `LocalUriHandler` (`androidx.compose.ui.platform.LocalUriHandler`, already
+  reachable for free since `compose.ui` is already a `commonMain`
+  dependency) rather than calling `UIApplication.openURL` directly — that
+  call is deprecated as of iOS 18 in favor of
+  `open(_:options:completionHandler:)`, which Kotlin/Native's UIKit bindings
+  don't expose at all, confirmed via web research before choosing
+  `LocalUriHandler` instead of writing the deprecated call anyway.
+  `onLaunchAccountPicker` calls `viewModel.onAccountChosen(null)` directly,
+  per `MainViewModel.kt`'s own doc comment: iOS has no native
+  account-picker UI the way Android's `AccountManager` does, so there's no
+  separate picker step to launch — honest about the current stub state,
+  since `IosAuthProvider` isn't real yet (Settings' "Connect Google
+  Account" will show "No account chosen." on iOS until it is).
+- `iosApp/PawgressSwift/ContentView.swift` rewritten: wraps
+  `MainViewControllerKt.MainViewController()` in a
+  `UIViewControllerRepresentable` and hosts it as the whole window's
+  content, replacing the old smoke-test `List`. `iOSApp.swift` needed no
+  changes.
+- `iosApp/README.md` rewritten to match — describes the real ported UI
+  Bennett should now see rather than a smoke test, flags that Google
+  sign-in won't work yet, and adds `CADisableMinimumFrameDurationOnPhone`
+  to the Info.plist setup steps (a real Compose Multiplatform iOS
+  requirement per Kotlin Multiplatform's own docs, not optional cleanup).
+  The framework-linking steps themselves (`embedAndSignAppleFrameworkForXcode`,
+  `FRAMEWORK_SEARCH_PATHS`/`OTHER_LDFLAGS`) were already correct and are
+  unchanged.
+
+**Deliberately not attempted yet**: a real `IosAuthProvider` implementation
+(OAuth Authorization Code + PKCE against `ASWebAuthenticationSession`,
+Kotlin/Native interop with `AuthenticationServices`). That needs a running
+Simulator to actually test PKCE/redirect handling against — writing it
+blind now would repeat the same guessed-API risk this project has already
+hit twice (see Phase 5's `kotlinx-datetime` lessons), except for
+Kotlin/Native interop, which is even less forgiving to guess at. Comes
+after Bennett confirms the baseline above actually builds and runs.
 
 ## Phase 7 — Distribution (only if wanted)
 
