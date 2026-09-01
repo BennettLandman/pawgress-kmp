@@ -470,10 +470,44 @@ dependency resolving cleanly (`material-icons-extended-android:1.7.6`, one
 deprecation notice pointing at a future Material Symbols migration --
 informational only, not blocking).
 
-**Not yet touched**: `LogSheet.kt`, `CoachScreen.kt`, `FunFactsScreen.kt`,
-`TrendsScreen.kt`, `SettingsScreen.kt`, plus wiring the real `MainActivity.kt`
-(and iOS's entry point) to actually construct `MainViewModel` and show the
-ported screens instead of the current smoke test.
+**Ported since (not yet re-verified by a build):**
+
+- `LogSheet.kt` -- mechanical; only real change was routing its two
+  `DateTimeFormatter` patterns through `DateFormats`.
+- `CoachScreen.kt` -- mechanical (`Int` drawable ids -> `DrawableResource`,
+  `R.drawable.all_coaches` -> `Res.drawable.all_coaches`); confirmed
+  `Coach`/`CoachCatalog`/`CoachOutfitQuotes` live in this port's `coach`
+  package (not `data`, unlike LiftLog) before writing the imports.
+- `FunFactsScreen.kt` -- mostly mechanical, but `filterByRange()`'s WEEK case
+  used `java.time.temporal.WeekFields.of(Locale.getDefault())`, which has no
+  kotlinx-datetime equivalent at all (no locale-aware week calendars in
+  common code). Replaced with a hardcoded Sunday-starting week
+  (`weekStart()`), matching exactly what `WeekFields` produces under a U.S.
+  locale (`firstDayOfWeek = SUNDAY`) -- the only locale this app has ever
+  run under. A deliberate, documented simplification, not a silent change.
+- `TrendsScreen.kt` -- the most `java.time` surface of any screen:
+  `withDayOfMonth`/`withDayOfYear`/`lengthOfMonth`/`plusMonths`/
+  `ChronoUnit.MONTHS.between` all needed replacements, added to
+  `data/DateCompat.kt`. After `DateFormats.kt`'s `.number`/`.isoDayNumber`
+  mistake (guessed API surface that turned out to be from a later
+  kotlinx-datetime release), every primitive these are built from --  the
+  `LocalDate(year, month, dayOfMonth)` constructor, `.dayOfYear`,
+  `.toEpochDays()`, `DateTimeUnit.MONTH`, `.monthsUntil()` -- was checked
+  against the actual kotlinx-datetime 0.6.1 source on GitHub first.
+  `monthsUntil()` in particular is a real `LocalDate` member at this pinned
+  version, so it replaces `ChronoUnit.MONTHS.between()` directly with no
+  hand-rolled arithmetic. The `"EEE"`/`"MMM"` formatter patterns route
+  through `DateFormats`, completing its coverage of all six patterns it was
+  designed around.
+
+**Not yet touched**: `SettingsScreen.kt` (797 lines, the largest remaining
+screen), plus wiring the real `MainActivity.kt` (and iOS's entry point) to
+actually construct `MainViewModel` and show the ported screens instead of
+the current smoke test. The `DateCompat.kt` additions above are new,
+unverified toolchain (like `DateFormats.kt`'s ordinal fix was) -- worth a
+real build before `SettingsScreen.kt`, which needs one more
+`DateTimeFormatter` pattern (`"MMM d 'at' h:mm a"`, already covered by
+`DateFormats.monthDayAtTime()`) and is otherwise expected to be mechanical.
 
 ## Phase 6 — iOS app wiring (not started)
 
