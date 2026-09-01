@@ -386,9 +386,24 @@ Picks up after a real build confirms the resource pipeline above.
 `shared` and `androidApp` were still on `compileSdk = 35`. Fixed by bumping
 `compileSdk` to 37 in both modules' `build.gradle.kts` (`targetSdk`/`minSdk`
 left untouched — those are independent of `compileSdk` per Android's own
-docs, and nothing here needs either to change). This may need Android
-Studio to download SDK Platform 37 via its SDK Manager on first sync if
-it's not already installed locally — normally prompted automatically.
+docs, and nothing here needs either to change).
+
+**Confirmed working by a real build after that fix.** `BUILD SUCCESSFUL`,
+and critically the task list shows the actual Compose resource pipeline
+running for the first time — `generateComposeResClass`,
+`generateResourceAccessorsForCommonMain`,
+`generateActualResourceCollectorsForAndroidMain`,
+`copyDebugComposeResourcesToAndroidAssets`, `parseDebugLocalResources`,
+`generateDebugRFile` — followed by `:shared:compileDebugKotlinAndroid` and
+`:androidApp:compileDebugKotlin` both actually executing. This confirms the
+full chain end to end: 271 assets under `composeResources/drawable/`
+codegen correctly, `Res.allDrawableResources`-based lookup
+(`MascotCatalog`/`CoachOutfitArt`) compiles, `painterResource` renders a
+real image in the Android smoke test, and the explicit
+`packageOfResClass` pin resolved without the ambiguity the default
+derivation is known for. The single biggest unverified-toolchain risk in
+this phase is now cleared — screens can be ported onto this with
+confidence.
 
 ## Phase 6 — iOS app wiring (not started)
 
