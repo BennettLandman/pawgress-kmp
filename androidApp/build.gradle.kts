@@ -53,9 +53,14 @@ dependencies {
 
     implementation("androidx.core:core-ktx:1.15.0")
     implementation("androidx.activity:activity-compose:1.9.3")
-    implementation("androidx.lifecycle:lifecycle-runtime-ktx:2.8.7")
-    implementation("androidx.lifecycle:lifecycle-viewmodel-compose:2.8.7")
-    implementation("androidx.lifecycle:lifecycle-runtime-compose:2.8.7")
+    implementation("androidx.lifecycle:lifecycle-runtime-ktx:2.11.0")
+    implementation("androidx.lifecycle:lifecycle-viewmodel-compose:2.11.0")
+    implementation("androidx.lifecycle:lifecycle-runtime-compose:2.11.0")
+    // viewModelFactory { initializer { ... } } -- lets MainActivity construct
+    // MainViewModel with real constructor args (a LiftRepository + SyncManager
+    // built from Android-only types) via `by viewModels { ... }`, matching the
+    // version already pinned for lifecycle-viewmodel in shared/build.gradle.kts.
+    implementation("androidx.lifecycle:lifecycle-viewmodel-ktx:2.11.0")
 
     implementation(platform("androidx.compose:compose-bom:2024.12.01"))
     implementation("androidx.compose.ui:ui")
