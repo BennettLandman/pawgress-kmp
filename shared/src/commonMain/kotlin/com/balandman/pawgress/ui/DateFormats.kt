@@ -30,9 +30,14 @@ object DateFormats {
         "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday",
     )
 
-    private fun monthAbbr(month: Month): String = MONTH_ABBR[month.number - 1]
-    private fun weekdayAbbr(dayOfWeek: DayOfWeek): String = WEEKDAY_ABBR[dayOfWeek.isoDayNumber - 1]
-    private fun weekdayFull(dayOfWeek: DayOfWeek): String = WEEKDAY_FULL[dayOfWeek.isoDayNumber - 1]
+    // kotlinx-datetime 0.6.1's Month/DayOfWeek are plain enums with no
+    // .number/.isoDayNumber properties (those were added in a later
+    // release) -- .ordinal works unconditionally and lines up directly
+    // with the tables above, since both enums declare their entries in
+    // calendar order (Month starts at JANUARY, DayOfWeek at MONDAY).
+    private fun monthAbbr(month: Month): String = MONTH_ABBR[month.ordinal]
+    private fun weekdayAbbr(dayOfWeek: DayOfWeek): String = WEEKDAY_ABBR[dayOfWeek.ordinal]
+    private fun weekdayFull(dayOfWeek: DayOfWeek): String = WEEKDAY_FULL[dayOfWeek.ordinal]
 
     /** `"MMM"` -- e.g. "Aug". */
     fun monthAbbr(date: LocalDate): String = monthAbbr(date.month)
