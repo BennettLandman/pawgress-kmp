@@ -134,7 +134,7 @@ Kotlin/Native code isn't part of an Android build, so this still needs
 Xcode/a real Kotlin/Native compile to check. If Xcode's error list flags
 anything in Phase 6, that file is the first place to look.
 
-## Phase 3 — Sync / networking (`SheetsApi.kt` done; `SyncManager.kt` deferred to Phase 4)
+## Phase 3 — Sync / networking (done for `SheetsApi.kt`, confirmed by a real build; `SyncManager.kt` deferred to Phase 4)
 
 `sync/SheetsApi.kt` (now `shared/commonMain/.../sync/SheetsApi.kt`) is ported.
 Replaced raw `OkHttp` with **Ktor Client** (`ktor-client-core:3.5.2` as an
@@ -187,8 +187,19 @@ had no wrapper scripts checked in, relying on Android Studio to resolve the
 wrapper itself; Android Studio generated them this time, so they're now
 tracked. Harmless, just worth knowing they exist now.
 
-The Kotlin/Native side (`ktor-client-darwin`) is still unverified — same
-caveat as everything else iOS-side in this project.
+A follow-up `assembleDebug` (after the import fix landed) came back
+`BUILD SUCCESSFUL` with `:shared:compileDebugKotlinAndroid` actually
+executing (not up-to-date/cached) — confirming the fix holds under a real
+compile, not just a sync. The Kotlin/Native side (`ktor-client-darwin`,
+and `IosAppFileStorage.kt`'s Foundation interop from Phase 2) is still
+unverified — a separate Gradle sync did successfully resolve and download
+the full iOS dependency graph (Ktor 3.5.2's darwin artifacts for all three
+iOS targets, kotlinx-coroutines-core/kotlinx-serialization-core at 1.11.0,
+the Kotlin/Native macOS toolchain), which proves the versions are real and
+fetchable, but a sync task never invokes the Kotlin/Native compiler — so
+that's not compile confirmation, just dependency resolution. Still need an
+actual iOS compile/link task (or Phase 6's Xcode wiring) before treating
+the iOS side as verified.
 
 ## Phase 4 — Auth (not started)
 
@@ -245,13 +256,15 @@ Program membership from Phase 6.
 
 ---
 
-**Current state**: Phases 0–2 done and confirmed by two real Android Studio
-builds. Phase 3 is done for `SheetsApi.kt`; `SyncManager.kt` moved into
-Phase 4's scope (see that phase's note) since its type signature is
-inseparable from the auth mechanism. Everything from here on is still
-unverified by a real compiler — this environment still has no network path
-to Maven Central/Google's Maven repo, so all of Claude's own checking stays
-structural/static; Bennett verifies by building for real. Given how cleanly
-Phases 0–2 came back from that first real build, the next thing worth doing
-is another Android Studio sync now that Ktor's in the mix, before going
-further into Phase 4/5.
+**Current state**: Phases 0–3 (Android side) done and confirmed by real
+Android Studio builds, including a clean `assembleDebug` after the
+`SheetsApi.kt` import fix. `SyncManager.kt` moved into Phase 4's scope (see
+that phase's note) since its type signature is inseparable from the auth
+mechanism. The iOS side has confirmed dependency resolution (Ktor + kotlinx
+iOS artifacts, Kotlin/Native toolchain all download and commonize cleanly)
+but no confirmed compile yet — that stays open until a real iOS
+link/compile task runs, or Phase 6's Xcode wiring happens. Everything from
+Phase 4 on is unverified by a real compiler — this environment still has no
+network path to Maven Central/Google's Maven repo, so all of Claude's own
+checking stays structural/static; Bennett verifies by building for real.
+Next up: Phase 4 (auth abstraction + `SyncManager.kt`).
