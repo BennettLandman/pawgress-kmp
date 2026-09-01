@@ -4,11 +4,12 @@ import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
-import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -20,6 +21,9 @@ import com.balandman.pawgress.data.LiftRepository
 import com.balandman.pawgress.sync.AndroidAuthProvider
 import com.balandman.pawgress.sync.AndroidConsentLauncher
 import com.balandman.pawgress.sync.SyncManager
+import com.balandman.pawgress.ui.MascotCatalog
+import com.balandman.pawgress.ui.theme.PawgressTheme
+import org.jetbrains.compose.resources.painterResource
 
 class MainActivity : ComponentActivity() {
 
@@ -50,7 +54,7 @@ class MainActivity : ComponentActivity() {
         )
 
         setContent {
-            MaterialTheme {
+            PawgressTheme {
                 Surface(modifier = Modifier.fillMaxSize()) {
                     CoachRosterProof(machineCount, syncManager)
                 }
@@ -80,6 +84,26 @@ private fun CoachRosterProof(machineCount: Int, syncManager: SyncManager) {
                 "SyncManager ready: $syncManager",
                 modifier = Modifier.padding(vertical = 4.dp),
             )
+        }
+        item {
+            // Phase 5 smoke test: proves the Compose Multiplatform resource
+            // pipeline actually works end to end -- codegen (Res.drawable),
+            // MascotCatalog's Res.allDrawableResources-based lookup, and
+            // painterResource all the way through to a real rendered Image --
+            // not just "compiles with unused files present."
+            val mascot = MascotCatalog.forNumber(1)
+            if (mascot != null) {
+                Image(
+                    painter = painterResource(mascot),
+                    contentDescription = null,
+                    modifier = Modifier.size(96.dp),
+                )
+            } else {
+                Text(
+                    "MascotCatalog.forNumber(1) returned null",
+                    modifier = Modifier.padding(vertical = 4.dp),
+                )
+            }
         }
         items(CoachCatalog.ALL) { coach ->
             Text(

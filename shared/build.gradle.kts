@@ -2,6 +2,15 @@ plugins {
     id("org.jetbrains.kotlin.multiplatform")
     id("com.android.library")
     id("org.jetbrains.kotlin.plugin.serialization")
+    // Phase 5: Compose Multiplatform, so the ported UI screens can live here
+    // instead of duplicated per platform. org.jetbrains.compose provides the
+    // compose.* dependency aliases and the resource-generation pipeline
+    // (composeResources/ -> the generated Res object); plugin.compose is the
+    // actual Compose compiler transform, required as a separate plugin since
+    // Kotlin 2.0 (androidApp already applies it for its own Jetpack Compose
+    // usage -- this is the same plugin, now also needed here).
+    id("org.jetbrains.compose")
+    id("org.jetbrains.kotlin.plugin.compose")
 }
 
 kotlin {
@@ -35,6 +44,23 @@ kotlin {
             // in LiftRepository.kt, dynamic JSON building in SheetsApi.kt), so this stays
             // implementation-only.
             implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.7.3")
+            // Compose Multiplatform (Phase 5) -- the actual UI screens ported
+            // from LiftLog's ui/*.kt live here now, so androidApp/iosApp just
+            // host a single shared @Composable entry point apiece.
+            implementation(compose.runtime)
+            implementation(compose.foundation)
+            implementation(compose.material3)
+            implementation(compose.ui)
+            // api, not implementation: MascotCatalog/CoachOutfitArt/CoachArt/
+            // MachineIcons return DrawableResource in their public signatures,
+            // and androidApp's own MainActivity.kt calls painterResource()
+            // directly on the result (Phase 5 smoke test) -- unlike compose.ui
+            // above, this Compose-Multiplatform-only artifact has no other
+            // route onto androidApp's classpath (androidApp's own Jetpack
+            // Compose dependency supplies the real androidx.compose.ui classes
+            // directly, since those are binary-identical on the Android
+            // target, but components-resources is CMP-specific).
+            api(compose.components.resources)
         }
         commonTest.dependencies {
             implementation(kotlin("test"))
@@ -72,4 +98,19 @@ android {
         sourceCompatibility = JavaVersion.VERSION_17
         targetCompatibility = JavaVersion.VERSION_17
     }
+
+    // Needed for Compose to actually run on the Android target -- androidApp's
+    // own module already sets this for its (now-placeholder) Jetpack Compose
+    // usage; shared needs it too now that the real screens live here.
+    buildFeatures {
+        compose = true
+    }
+}
+
+// Pinned explicitly rather than left to the default {group}.{module}.generated.resources
+// derivation -- that default depends on this project's Gradle `group`, which is unset
+// here, a documented source of inconsistent/malformed generated package names
+// (JetBrains/compose-multiplatform#4320). Explicit is one less thing to get wrong.
+compose.resources {
+    packageOfResClass = "com.balandman.pawgress.resources"
 }

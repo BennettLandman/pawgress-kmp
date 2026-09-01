@@ -299,25 +299,85 @@ need registering in Google Cloud Console before real sign-in works, even
 though the code compiles. That's a one-time manual step for Bennett, not
 something Claude can do.
 
-## Phase 5 — UI (not started, the biggest remaining chunk)
+## Phase 5 — UI (in progress: infra + asset lookup done, screens not started)
 
 All of `ui/*.kt` (MainScreen, CoachScreen, SettingsScreen, TrendsScreen,
 FunFactsScreen, LogSheet, MainViewModel, the art/icon lookup catalogs) needs
 to move into `shared/commonMain` using **Compose Multiplatform** instead of
 plain Jetpack Compose. Most of the Foundation/Material3 usage in these files
-carries over close to unchanged. Two things don't:
+carries over close to unchanged. Two things don't, and both are now designed
+and implemented (not yet build-confirmed):
 
-- **Asset lookup.** `MascotCatalog.kt` and `CoachOutfitArt.kt` find drawables
-  by reflecting over the generated `R.drawable` class by name pattern —
-  deliberately, so new art needs zero code changes. Compose Multiplatform's
-  resource system generates a typed `Res.drawable` accessor per target
-  instead, which doesn't support that same reflection trick. This needs a
-  redesigned (still zero-config, ideally) lookup approach.
-- **Date formatting.** `MainScreen.kt`, `LogSheet.kt`, `SettingsScreen.kt`,
-  `TrendsScreen.kt` all use `java.time.format.DateTimeFormatter` — needs
-  hand-written multiplatform formatting (kotlinx-datetime's formatting API,
-  or manual string building for the handful of patterns actually used:
-  `"EEEE, MMM d"`, `"h:mm a"`, `"MMM d"`, `"EEE"`, `"MMM"`).
+- **Asset lookup.** The Android-only originals found drawables by reflecting
+  over the generated `R.drawable` class's fields by name pattern (e.g. every
+  field starting with `mascot_`) — deliberately, so new art needs zero code
+  changes. Compose Multiplatform's generated `Res` object turns out to have
+  a direct equivalent: `Res.allDrawableResources: Map<String, DrawableResource>`,
+  a compile-time-generated map of every resource's filename to its handle —
+  not reflection, but the same "scan everything, filter by name pattern"
+  shape. `MascotCatalog.kt` and `CoachOutfitArt.kt` are ported onto this with
+  their logic otherwise unchanged; still zero-config for new art. Confirmed
+  this API actually exists via web research (not guessed) before designing
+  around it — see the doc comments in those two files for the exact mechanism.
+- **Date formatting** — not yet reached (no screens ported yet). Still
+  planned as hand-written multiplatform formatting for the handful of fixed
+  patterns actually used (`"EEEE, MMM d"`, `"h:mm a"`, `"MMM d"`, `"EEE"`,
+  `"MMM"`), once `MainScreen.kt`/`LogSheet.kt`/`SettingsScreen.kt`/
+  `TrendsScreen.kt` are actually ported.
+
+**What's done so far, checkpointed here deliberately before porting the
+~2,500 remaining lines of screens/ViewModel on top of it** — this is the
+single biggest new piece of unverified toolchain introduced in this project
+(Compose Multiplatform's resource codegen has never been exercised by a
+real build), so it's worth confirming the foundation compiles before
+building a lot more on it, same reasoning as verifying Ktor before Phase 4:
+
+- `shared/build.gradle.kts`: applied `org.jetbrains.compose` (1.12.0) and
+  `org.jetbrains.kotlin.plugin.compose`, added `compose.runtime`/
+  `compose.foundation`/`compose.material3`/`compose.ui` (implementation) and
+  `compose.components.resources` (**api**, not implementation — androidApp's
+  own code calls `painterResource()`/references `DrawableResource` directly,
+  and unlike `compose.ui`, this CMP-only artifact has no other route onto
+  androidApp's classpath the way real `androidx.compose.ui` classes do).
+  Pinned `compose.resources { packageOfResClass = "com.balandman.pawgress.resources" }`
+  explicitly rather than relying on the default `{group}.{module}.generated.resources`
+  derivation, which depends on this project's (unset) Gradle `group` and has
+  a documented history of inconsistent output
+  (JetBrains/compose-multiplatform#4320).
+- Root `build.gradle.kts`: bumped `org.jetbrains.kotlin.multiplatform` from
+  2.0.21 to 2.2.10 — left behind by an earlier Android Studio upgrade that
+  only bumped `kotlin.android`/`kotlin.plugin.compose`, and Compose
+  Multiplatform 1.12.0 needs Kotlin 2.1.0+ regardless. Added
+  `org.jetbrains.compose` version 1.12.0.
+- All 271 image assets (227 WebP illustrations/mascots/outfits + 44 XML line
+  icons, everything under LiftLog's `res/drawable`/`res/drawable-nodpi`
+  except the two app-icon-only files, which stay Android-only) copied into
+  `shared/src/commonMain/composeResources/drawable/` — flattening away the
+  `-nodpi` qualifier, since Compose Multiplatform's plain `drawable/` folder
+  doesn't density-scale by default either, which was the whole point of
+  `-nodpi` on the Android side. Checked every XML icon uses only plain
+  `<vector>`/`<path>` elements first (no gradients/groups/clip-paths), which
+  Compose Multiplatform's resource parser is confirmed to support.
+- `ui/theme/Theme.kt` ported unchanged (renamed `LiftLogTheme` →
+  `PawgressTheme`) — it's pure `androidx.compose.foundation`/`material3`/
+  `runtime`, no Android-specific API at all, so it needed no redesign.
+- `ui/MachineIcons.kt`, `ui/MachineArt.kt`, `ui/CoachArt.kt` ported
+  mechanically (`Int`/`@DrawableRes` → `DrawableResource`,
+  `androidx.compose.ui.res.painterResource` →
+  `org.jetbrains.compose.resources.painterResource`, `java.time.LocalDate` →
+  `kotlinx.datetime.LocalDate` in `CoachArt.kt`). Every key in
+  `MachineIcons`'s two maps checked against the original by count (44 line
+  icons, 45 illustrations including `shuttle_run`) — matches exactly.
+- `MainActivity.kt`'s smoke-test screen extended to actually call
+  `MascotCatalog.forNumber(1)` and render it via `painterResource` + `Image`
+  — exercises the full pipeline (codegen → lookup → render), not just
+  "compiles with unused files present."
+
+**Not yet touched**: `MainViewModel.kt`, `MainScreen.kt`, `LogSheet.kt`,
+`CoachScreen.kt`, `FunFactsScreen.kt`, `TrendsScreen.kt`,
+`SettingsScreen.kt` — roughly 2,500 lines across the biggest screens, plus
+the real `MainActivity.kt`/iOS entry-point wiring to actually show them.
+Picks up after a real build confirms the resource pipeline above.
 
 ## Phase 6 — iOS app wiring (not started)
 
