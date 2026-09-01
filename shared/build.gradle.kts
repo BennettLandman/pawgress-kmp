@@ -63,6 +63,11 @@ kotlin {
             implementation(compose.foundation)
             implementation(compose.material3)
             implementation(compose.ui)
+            // MainScreen.kt's done-badge/settings-gear icons use the same
+            // androidx.compose.material.icons.filled.* classes LiftLog used
+            // on Android -- this CMP artifact publishes the identical
+            // package, so the icon imports needed zero changes when ported.
+            implementation(compose.materialIconsExtended)
             // api, not implementation: MascotCatalog/CoachOutfitArt/CoachArt/
             // MachineIcons return DrawableResource in their public signatures,
             // and androidApp's own MainActivity.kt calls painterResource()
