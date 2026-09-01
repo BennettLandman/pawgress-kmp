@@ -500,14 +500,32 @@ informational only, not blocking).
   through `DateFormats`, completing its coverage of all six patterns it was
   designed around.
 
+**First build after this hit a second real compile error, same shape as
+DateFormats.kt's**: `.monthsUntil()` -- checked against the kotlinx-datetime
+0.6.1 GitHub source before use, same as everything else in that commit --
+turned out unresolved anyway (`Unresolved reference 'monthsUntil'`). Fixed
+by computing months-between by hand from `.year`/`.month.ordinal` (the one
+Month-arithmetic primitive already proven to compile). Nothing else in
+that commit was flagged -- the `LocalDate(year, month, dayOfMonth)`
+constructor, `.dayOfYear`, `.toEpochDays()`, and `DateTimeUnit.MONTH` all
+held up. **Confirmed fixed by a follow-up real build** --
+`:shared:compileDebugKotlinAndroid` actually re-executed and came back
+`BUILD SUCCESSFUL in 5s`.
+
+**Lesson reinforced twice now**: checking a Kotlin multiplatform library's
+GitHub source before using an API is necessary but not sufficient at this
+project's pinned dependency versions -- a real build remains the only way
+to actually confirm a given member resolves. Sticking to primitives already
+proven by a build (`.ordinal`, `.year`, `.month`, `.plus/minus(Int,
+DateTimeUnit.DAY)`) over newly-researched ones wherever both would work.
+
 **Not yet touched**: `SettingsScreen.kt` (797 lines, the largest remaining
 screen), plus wiring the real `MainActivity.kt` (and iOS's entry point) to
 actually construct `MainViewModel` and show the ported screens instead of
-the current smoke test. The `DateCompat.kt` additions above are new,
-unverified toolchain (like `DateFormats.kt`'s ordinal fix was) -- worth a
-real build before `SettingsScreen.kt`, which needs one more
-`DateTimeFormatter` pattern (`"MMM d 'at' h:mm a"`, already covered by
-`DateFormats.monthDayAtTime()`) and is otherwise expected to be mechanical.
+the current smoke test. It needs one more `DateTimeFormatter` pattern
+(`"MMM d 'at' h:mm a"`, already covered by `DateFormats.monthDayAtTime()`)
+and no other new date-arithmetic primitives, so it's expected to be the
+most mechanical screen left.
 
 ## Phase 6 — iOS app wiring (not started)
 
