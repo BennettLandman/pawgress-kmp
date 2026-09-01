@@ -43,6 +43,15 @@ kotlin {
             // Ktor's Android/JVM HTTP engine — auto-discovered by the bare
             // HttpClient() call in SheetsApi.kt, no explicit wiring needed here.
             implementation("io.ktor:ktor-client-okhttp:3.5.2")
+            // Google's Identity Authorization API, used by AndroidAuthProvider.kt.
+            // Same version already proven working in the original LiftLog app.
+            implementation("com.google.android.gms:play-services-auth:21.3.0")
+            // ActivityResultLauncher/ActivityResult/IntentSenderRequest, used by
+            // AndroidConsentLauncher.kt. shared is a separate Gradle module from
+            // androidApp, so androidApp's own activity-compose dependency doesn't
+            // reach code compiled here -- this needs its own declaration. Same
+            // version LiftLog already uses (there, transitively, via activity-compose).
+            implementation("androidx.activity:activity-ktx:1.9.3")
         }
         iosMain.dependencies {
             // Ktor's engine backed by NSURLSession — same auto-discovery as above.

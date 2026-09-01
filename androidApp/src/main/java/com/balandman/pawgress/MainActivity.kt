@@ -3,6 +3,7 @@ package com.balandman.pawgress
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
@@ -16,10 +17,26 @@ import androidx.compose.ui.unit.dp
 import com.balandman.pawgress.coach.CoachCatalog
 import com.balandman.pawgress.data.AndroidAppFileStorage
 import com.balandman.pawgress.data.LiftRepository
+import com.balandman.pawgress.sync.AndroidAuthProvider
+import com.balandman.pawgress.sync.AndroidConsentLauncher
+import com.balandman.pawgress.sync.SyncManager
 
 class MainActivity : ComponentActivity() {
+
+    // Phase 4 smoke test: wires up the same registerForActivityResult +
+    // StartIntentSenderForResult pattern LiftLog's own MainActivity uses,
+    // bridged into a suspend function via AndroidConsentLauncher — proves
+    // SyncManager/AndroidAuthProvider actually construct and link, before
+    // any real "Sync Now" UI exists (that's Phase 5).
+    private val consentLauncher = AndroidConsentLauncher()
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+
+        val activityResultLauncher = registerForActivityResult(
+            ActivityResultContracts.StartIntentSenderForResult()
+        ) { result -> consentLauncher.onResult(result) }
+        consentLauncher.attach(activityResultLauncher)
 
         // Phase 2 smoke test: proves LiftRepository + AndroidAppFileStorage
         // actually construct, load (or seed) the JSON file, and expose a
@@ -27,10 +44,15 @@ class MainActivity : ComponentActivity() {
         val repository = LiftRepository(AndroidAppFileStorage(this))
         val machineCount = repository.current().machines.size
 
+        val syncManager = SyncManager(
+            repo = repository,
+            auth = AndroidAuthProvider(this, consentLauncher),
+        )
+
         setContent {
             MaterialTheme {
                 Surface(modifier = Modifier.fillMaxSize()) {
-                    CoachRosterProof(machineCount)
+                    CoachRosterProof(machineCount, syncManager)
                 }
             }
         }
@@ -39,17 +61,23 @@ class MainActivity : ComponentActivity() {
 
 /**
  * Temporary placeholder screen — it exists only to prove the shared
- * Kotlin Multiplatform module (coach roster, data models, and now the
- * persistence layer) links correctly into a real Android app target.
+ * Kotlin Multiplatform module (coach roster, data models, persistence, and
+ * now the auth/sync wiring) links correctly into a real Android app target.
  * Replace with the ported UI screens from LiftLog once Phase 5 of
  * PORTING_PLAN.md is underway.
  */
 @Composable
-private fun CoachRosterProof(machineCount: Int) {
+private fun CoachRosterProof(machineCount: Int, syncManager: SyncManager) {
     LazyColumn(modifier = Modifier.padding(16.dp)) {
         item {
             Text(
                 "LiftRepository loaded $machineCount machines from local storage",
+                modifier = Modifier.padding(vertical = 4.dp),
+            )
+        }
+        item {
+            Text(
+                "SyncManager ready: $syncManager",
                 modifier = Modifier.padding(vertical = 4.dp),
             )
         }

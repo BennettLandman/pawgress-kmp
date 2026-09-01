@@ -201,25 +201,96 @@ that's not compile confirmation, just dependency resolution. Still need an
 actual iOS compile/link task (or Phase 6's Xcode wiring) before treating
 the iOS side as verified.
 
-## Phase 4 — Auth (not started)
+## Phase 4 — Auth (in progress: commonMain + Android done; iOS stubbed)
 
 `sync/GoogleAuth.kt`, `sync/AccountPicker.kt` use Android's
 `play-services-auth` and system account picker — entirely Android-specific.
-iOS needs its own path: either Google's iOS Sign-In SDK, or a generic OAuth
-flow via `ASWebAuthenticationSession`. This will likely become a plain
-interface + DI in `shared/` (the same pattern Phase 2 used for file storage,
-rather than `expect`/`actual` — it worked out simpler there), something like
-"give me an access token, or tell me you need the user to consent" — with
-completely separate platform implementations behind it.
+iOS needs its own path. This became a plain interface + DI in `shared/`
+(the same pattern Phase 2 used for file storage, rather than
+`expect`/`actual`), shaped as:
+
+```kotlin
+sealed interface AuthOutcome {
+    data class Success(val accessToken: String) : AuthOutcome
+    data class Failure(val message: String) : AuthOutcome
+}
+
+interface AuthProvider {
+    // Silent path: returns a token if consent was already granted, no UI.
+    // Returns null (not Failure) specifically when UI is required, so the
+    // caller knows to decide whether showing that UI is appropriate right now.
+    suspend fun silentAuthorize(accountHint: String? = null): AuthOutcome?
+
+    // Always runs whatever UI the platform needs (consent screen, sign-in
+    // page) and suspends until it resolves to a token or a failure.
+    suspend fun requestConsent(accountHint: String? = null): AuthOutcome
+}
+```
+
+This is a bigger win than it looks: `PendingIntent` (Android's "here's a UI
+flow to launch and get a result back from") has no iOS equivalent at all, and
+trying to model "a launchable, resumable UI flow" generically across both
+platforms is the wrong abstraction to reach for. Instead, *launching and
+awaiting that platform UI* is pushed entirely behind `requestConsent()` — so
+`shared/` never needs to know what a `PendingIntent` or an
+`ASWebAuthenticationSession` even is. That in turn means `SyncManager` no
+longer needs a `SyncResult.NeedsConsent` case at all — see below.
 
 **`sync/SyncManager.kt` belongs to this phase too**, not Phase 3 — see the
-note there. Porting it means redesigning `SyncResult.NeedsConsent` (currently
-holds an Android `PendingIntent`, which has no iOS equivalent) into something
-generic enough for both platforms' consent flows, alongside whatever shape
-the new auth interface takes. Its actual sync orchestration logic (resolving
-the account from the token, `ensureSpreadsheet`, push/pull via `SheetsApi`) is
-otherwise plain Kotlin and should port with minimal change once the auth
-interface exists.
+note there. It's now ported into `shared/commonMain/.../sync/SyncManager.kt`,
+unchanged in its actual orchestration logic (resolving the account from the
+token, `ensureSpreadsheet`, push/pull via `SheetsApi`) but redesigned at the
+auth boundary: `allowConsentUi = true` now calls `requestConsent()` directly
+instead of bubbling a `PendingIntent` up to the UI layer to launch itself, so
+`SyncResult.NeedsConsent` is gone entirely — a real simplification, not just
+a type swap, made possible by moving "show and await the platform UI" fully
+behind the interface.
+
+**Android implementation (`shared/androidMain/.../sync/AndroidAuthProvider.kt`)**:
+ports `GoogleAuth.kt`'s existing Identity Authorization API logic
+(`play-services-auth:21.3.0`, same version already proven in the original
+LiftLog app) almost unchanged, adapted to the new interface. The one new
+piece is `ConsentLauncher` — an Android-only interface (not exposed to
+commonMain) that bridges Android's callback-based
+`ActivityResultLauncher<IntentSenderRequest>` into a suspend function via a
+`CompletableDeferred`, matching the exact `registerForActivityResult` +
+`StartIntentSenderForResult` pattern already used and working in LiftLog's
+own `MainActivity.kt`. `AccountPicker.kt` ports over unchanged — it stays
+Android-only since forcing a specific account choice is already handled
+differently on the two platforms (Android's system chooser vs. Google's own
+sign-in page doing account selection inline), and its output (an email) just
+becomes the `accountHint` argument to the shared interface, so no interface
+change was needed for it.
+
+**iOS implementation is stubbed, not real yet.** A `IosAuthProvider.kt`
+exists and conforms to the interface so the shared module compiles for iOS,
+but every method currently returns `AuthOutcome.Failure` with a clear
+"not implemented yet" message. The real iOS path — a generic OAuth 2.0
+Authorization Code + PKCE flow against Google's endpoints directly
+(`accounts.google.com/o/oauth2/v2/auth` → `oauth2.googleapis.com/token`),
+with `ASWebAuthenticationSession` supplying only the "show this URL, give me
+back the redirect" piece — was deliberately not attempted blind this
+session. Unlike `IosAppFileStorage.kt`'s Foundation interop (simple,
+low-risk to get slightly wrong), this involves genuine security-relevant
+code (PKCE code-verifier/challenge generation needs a real SHA-256, which
+has no pure-Kotlin-common stdlib implementation and would mean either a new
+multiplatform crypto dependency or hand-rolled crypto) and Kotlin/Native
+interop with `AuthenticationServices` that can't be checked here at all —
+no Xcode, no simulator, no way to catch a wrong Swift/Kotlin bridging call
+short of Bennett hitting it in a real build. That combination is worth
+doing for real once Phase 6 gives an actual Xcode project and Simulator to
+test against, rather than shipping a guess now. The design is written down
+here so implementing it later is a known shape, not a fresh investigation.
+
+**Android side confirmed by real builds so far.** Not yet re-verified
+specifically for the auth code above — needs another `assembleDebug` (or
+Build → Make) after this lands. `play-services-auth` also needs the OAuth
+client's SHA-1 registered per LiftLog's own `SETUP.md` step 4, but this
+KMP project uses a different package name (`com.balandman.pawgress` vs.
+`com.balandman.liftlog`) — a **new** Android OAuth client (or an added
+package name + SHA-1 on the existing one) will need registering in Google
+Cloud Console before real sign-in works, even once this code compiles.
+That's a one-time manual step for Bennett, not something Claude can do.
 
 ## Phase 5 — UI (not started, the biggest remaining chunk)
 
