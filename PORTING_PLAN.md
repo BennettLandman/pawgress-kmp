@@ -20,16 +20,32 @@ untouched.
   source that goes into it once created is ready to go in
   `iosApp/PawgressSwift/`.
 
-## Phase 0 — Infrastructure (done)
+## Phase 0 — Infrastructure (done, confirmed by a real build)
 
 - Gradle multiplatform project scaffolded (`settings.gradle.kts`, root
   `build.gradle.kts`, `shared/build.gradle.kts` with `androidTarget()` +
   `iosX64()`/`iosArm64()`/`iosSimulatorArm64()` targets).
-- Reused the same Gradle wrapper version, AGP version (8.13.2), and Kotlin
-  version (2.0.21) as the original LiftLog project, since those are already
-  known to work in Android Studio here.
+- Originally pinned to the same Gradle/AGP/Kotlin versions as LiftLog
+  (Gradle 8.14.5, AGP 8.13.2, Kotlin 2.0.21). Opening the project in Android
+  Studio auto-upgraded these to **Gradle 9.5.0, AGP 9.3.2, Kotlin 2.2.10**
+  (Android Studio's own defaults for a new-ish project) — Bennett accepted
+  that, and it built successfully, so those newer versions are now what's
+  pinned in the repo. Android Studio also added a block of `android.*`
+  compatibility flags to `gradle.properties` (opting out of a few AGP 9
+  behavior changes — e.g. `android.newDsl=false` keeps the old
+  `android { kotlinOptions { ... } }` DSL working instead of requiring an
+  immediate rewrite to the new `ApplicationExtension`/`compilerOptions` APIs)
+  and a `gradle/gradle-daemon-jvm.properties` pinning the Gradle daemon to
+  JDK 21 — both are Gradle/AGP-generated, not hand-written.
+- **Confirmed working via two real `BUILD SUCCESSFUL` runs from Bennett** —
+  `androidApp:assembleDebug` (and its test variants) after the version bump,
+  and again on the plain `androidApp` run. Notably, this also downloaded and
+  set up the Kotlin/Native macOS-arm64 toolchain (`commonizeNativeDistribution`,
+  ~315MB) as a side effect of Gradle configuring the iOS targets during sync —
+  so the iOS build toolchain is already in place on Bennett's Mac for when
+  Phase 6 gets there, even though nothing iOS-specific has been compiled yet.
 
-## Phase 1 — Pure data/logic layer (done)
+## Phase 1 — Pure data/logic layer (done, confirmed by a real build)
 
 Ported with no behavior changes, only package renames
 (`com.balandman.liftlog.*` → `com.balandman.pawgress.*`):
@@ -56,7 +72,14 @@ JVM-only and doesn't exist on Kotlin/Native (iOS):
   change their call sites, only their imports.
 - `coach/MotivationCatalog.kt` — same date-API swap; logic unchanged.
 
-## Phase 2 — Persistence (done)
+**Confirmed working**: all of this — including Phase 1's `kotlinx-datetime`
+API usage in `Models.kt`/`GymDay.kt`/`DateCompat.kt`/`MotivationCatalog.kt` —
+compiles as part of `shared`'s `androidTarget` in the real Android Studio
+build described in Phase 0. No longer "written from documentation,
+unverified"; it's been through a real Kotlin compiler on the JVM target. (The
+iOS targets still haven't been compiled — see Phase 2 and Phase 6.)
+
+## Phase 2 — Persistence (done, Android side confirmed by a real build)
 
 `LiftRepository.kt` (now `shared/commonMain/.../data/LiftRepository.kt`,
 ported at ~820 lines) replaced its three Android/JVM-only dependencies:
@@ -102,14 +125,14 @@ ported at ~820 lines) replaced its three Android/JVM-only dependencies:
   the pawprint/coach/outfit economy, the Sheets-restore merge — is unchanged
   from the original, since it was already plain Kotlin.
 
-**Not yet checked, same caveat as Phase 1**: nothing here has been compiled.
-The single piece with the most real uncertainty is `IosAppFileStorage.kt`'s
-Foundation interop calls (`NSString.stringWithContentsOfFile`, `writeToFile`,
-`NSFileManager`) — those signatures are written from documented Kotlin/Native
-↔ Objective-C bridging behavior, not verified by Xcode. If Xcode's error list
-flags anything in Phase 6, that file is the first place to look; everything
-else in Phase 2 is ordinary multiplatform Kotlin and much less likely to need
-changes.
+**Confirmed working, with one exception**: the real Android Studio build
+compiles `LiftRepository.kt`, `AppFileStorage.kt`, and `AndroidAppFileStorage.kt`
+cleanly (same successful `androidApp` builds as Phase 0/1). The one piece
+still unverified is `IosAppFileStorage.kt`'s Foundation interop calls
+(`NSString.stringWithContentsOfFile`, `writeToFile`, `NSFileManager`) —
+Kotlin/Native code isn't part of an Android build, so this still needs
+Xcode/a real Kotlin/Native compile to check. If Xcode's error list flags
+anything in Phase 6, that file is the first place to look.
 
 ## Phase 3 — Sync / networking (not started)
 
@@ -167,9 +190,10 @@ Program membership from Phase 6.
 
 ---
 
-**Current state**: Phases 0–2 done. Everything else is untouched Android-only
-code still living only in the original `LiftLog` repo, to be ported
-phase-by-phase in future sessions. **The first real test of any of this is
-opening `~/dev/Pawgress` in Android Studio and letting Gradle sync** — no
-build has been run anywhere yet (Phases 0–2 alike), since this environment
-has no network path to Maven Central/Google's Maven repo.
+**Current state**: Phases 0–2 done, and the Android side of all three is
+now confirmed by two real, successful Android Studio builds — not just this
+environment's structural checks — the first hard signal on this whole
+scaffold. The iOS side (Kotlin/Native compilation, and everything in Phase 3
+onward) is still unverified — this environment still has no network path to
+Maven Central/Google's Maven repo, so all of Claude's own checking stays
+structural/static; Bennett verifies by building for real.
