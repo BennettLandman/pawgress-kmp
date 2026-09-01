@@ -3,7 +3,8 @@
 This folder deliberately does **not** contain a checked-in `.xcodeproj` yet.
 Xcode project files are fragile to hand-write outside of Xcode itself, so the
 one-time project creation is a manual step — everything else (the actual
-Kotlin logic) already lives in `shared/` and needs no changes for iOS.
+Kotlin logic, and now the actual UI) already lives in `shared/` and needs no
+changes for iOS.
 
 ## One-time setup (do this once, in Xcode, on your Mac)
 
@@ -31,21 +32,49 @@ Kotlin logic) already lives in `shared/` and needs no changes for iOS.
 6. Add these Build Settings (target → Build Settings → search for each):
    - `FRAMEWORK_SEARCH_PATHS`: `$(SRCROOT)/../shared/build/xcode-frameworks/$(CONFIGURATION)/$(SDK_NAME)`
    - `OTHER_LDFLAGS`: `-framework Shared`
-7. Build (⌘B). The first build will take a while — it's compiling the
-   Kotlin/Native backend and the shared module for iOS for the first time.
+7. Add `CADisableMinimumFrameDurationOnPhone` (type Boolean, value **YES**)
+   to `Info.plist`. This isn't optional cosmetics — it's a documented
+   Compose Multiplatform iOS requirement (unlocks ProMotion's higher refresh
+   rates on supported devices; without it, Compose's own rendering can look
+   stuttery on an iPhone that actually has a 120Hz display).
+8. Build (⌘B). The first build will take a while — it's compiling the
+   Kotlin/Native backend and the shared module for iOS for the first time,
+   including a Kotlin/Native compile of `IosAppFileStorage.kt`,
+   `IosAuthProvider.kt`, and the new `MainViewController.kt`, none of which
+   has ever been through a real compiler before this. If it fails, that's
+   useful information, not a setback — paste the exact Xcode build log/error
+   back so it can be fixed and re-checked, the same rhythm used for every
+   Android build so far in this project.
 
-## Once that's done
+## What you'll see
 
-`import Shared` in any Swift file gives you everything currently ported:
-`CoachCatalog.shared.ALL`, `MonthDay`, `CoachTheme`, etc. — Kotlin `object`s
-become `.shared` singletons in the generated Objective-C/Swift interop layer,
-and top-level Kotlin functions land in a synthesized class named after their
-file (e.g. `ModelsKt.outfitKey(...)`).
+Once it builds and runs (Simulator or device), you should see the actual
+ported app — the real main grid, Settings, Coach, Fun Facts, and Trends
+screens, navigated via the same shared `AppRoot` Android already uses — not
+a placeholder. `ContentView.swift` wraps `MainViewController.kt`'s
+`MainViewController()` (a `UIViewController` built via Compose
+Multiplatform's `ComposeUIViewController`) in a `UIViewControllerRepresentable`
+and hosts it as the whole window's content.
+
+Signing in with Google **will not work yet** — `IosAuthProvider.kt` is a
+deliberate stub (see its own doc comment and `PORTING_PLAN.md`'s Phase 4/6
+notes): tapping "Connect Google Account" in Settings will just show a "No
+account chosen." message. Everything that doesn't need Google sign-in
+(logging lifts, the coach/pawprint economy, Fun Facts, Trends, hiding/
+renaming/adding machines) should work against local storage exactly like the
+Android app, backed by `IosAppFileStorage.kt` writing into this app's
+Documents directory. Real Google sign-in (an OAuth Authorization Code + PKCE
+flow against `ASWebAuthenticationSession`) is the next piece of work, once
+this baseline is confirmed running for real.
 
 ## Status
 
-Only the pure data/catalog layer (`shared/src/commonMain`) is ported so far —
-see `../PORTING_PLAN.md` for what's done and what's still Android-only.
-There's no real iOS UI yet; `ContentView.swift` here is just a smoke test
-that lists the coach roster from the shared module, mirroring what
-`androidApp`'s `MainActivity.kt` does on the Android side.
+All of `shared/commonMain` is ported — see `../PORTING_PLAN.md` for full
+phase-by-phase detail. This is the **first real attempt to compile any of it
+for iOS** — nothing in `shared/src/iosMain` (`IosAppFileStorage.kt`,
+`IosAuthProvider.kt`, `MainViewController.kt`) has been through a
+Kotlin/Native compiler yet, since neither the cloud environment nor the
+Mac's sandboxed helper used for editing this project can reach Maven
+Central/Google's Maven repo or run Xcode. This one-time Xcode setup, and the
+build log it produces, is what actually checks all of it for the first
+time.
