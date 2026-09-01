@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- The paw-and-ring mark from the real app artwork, chroma-keyed out of
+     app_icon.png and centered in the 108dp adaptive-icon canvas at roughly
+     62% scale so the launcher mask never clips it. -->
+<bitmap xmlns:android="http://schemas.android.com/apk/res/android"
+    android:src="@drawable/ic_launcher_foreground_art"
+    android:gravity="center" />
