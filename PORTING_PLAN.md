@@ -134,26 +134,69 @@ Kotlin/Native code isn't part of an Android build, so this still needs
 Xcode/a real Kotlin/Native compile to check. If Xcode's error list flags
 anything in Phase 6, that file is the first place to look.
 
-## Phase 3 — Sync / networking (not started)
+## Phase 3 — Sync / networking (`SheetsApi.kt` done; `SyncManager.kt` deferred to Phase 4)
 
-`sync/SheetsApi.kt`, `sync/SyncManager.kt` use raw `OkHttp` (JVM/Android
-only). Plan: swap to **Ktor Client** (official Kotlin Multiplatform HTTP
-client — Darwin engine on iOS, OkHttp engine on Android, so Android's runtime
-behavior barely changes). `sync/SheetsApi.kt` also uses
-`java.time.format.DateTimeFormatter` for date/time formatting — that needs a
-manual multiplatform-friendly formatter (kotlinx-datetime doesn't have a
-drop-in `DateTimeFormatter` equivalent at the version pinned here).
+`sync/SheetsApi.kt` (now `shared/commonMain/.../sync/SheetsApi.kt`) is ported.
+Replaced raw `OkHttp` with **Ktor Client** (`ktor-client-core:3.5.2` as an
+`api` dependency in commonMain; `ktor-client-okhttp` in androidMain,
+`ktor-client-darwin` in iosMain as the platform engines — `SheetsApi`'s
+default `HttpClient()` takes no explicit engine argument, since Ktor
+auto-discovers whichever single engine dependency is on that target's
+classpath). Every method is now `suspend fun` instead of a blocking call —
+the original's "call this from a background dispatcher" rule becomes "call
+this from a coroutine," which is what `SyncManager` was already doing via
+`withContext(Dispatchers.IO)`. Replaced `org.json` with dynamic
+`kotlinx.serialization.json` building (`buildJsonObject`/`buildJsonArray`,
+plus a few small private `optString`/`optInt`-style helpers on `JsonObject`
+mirroring org.json's forgiving, never-throws style) rather than defining
+typed DTOs for every Sheets request/response shape — this is a request/response
+API with a dozen different ad-hoc JSON shapes, not a stable persisted format,
+so keeping the original's "build/parse JSON dynamically" approach was the
+lower-risk translation. Replaced `java.net.URLEncoder` with Ktor's
+`String.encodeURLParameter()`. Replaced `java.time.format.DateTimeFormatter`
+with two small hand-written functions — the sheet only ever uses two fixed
+patterns (`yyyy-MM-dd`, `HH:mm`), so a manual formatter/parser was safer here
+than adopting a bigger multiplatform date-formatting API this session can't
+verify by compiling.
+
+**`sync/SyncManager.kt` is deliberately NOT ported yet**, even though it's
+nominally part of "sync/networking" — its public API is inseparable from
+Android's auth types (`android.accounts.Account`, `android.app.PendingIntent`
+in `SyncResult.NeedsConsent`, `android.content.Context`, and a direct call
+into `GoogleAuth`). `PendingIntent` specifically has no iOS equivalent at
+all — iOS's auth flow won't hand back an intent to launch, it'll hand back
+either a token directly or a URL to open. Porting `SyncManager.kt` properly
+means designing its cross-platform shape at the same time as Phase 4's auth
+abstraction, not mechanically swapping types in isolation — so it waits for
+that phase, where it belongs anyway.
+
+**Unverified**: this environment can't compile Ktor's Kotlin/Native
+(`ktor-client-darwin`) or even its Android (`ktor-client-okhttp`) paths any
+more than the rest of this project — same caveat as everything else here.
+`SheetsApi.kt`'s public method signatures didn't change shape (same
+suspend-instead-of-blocking swap throughout), so the risk is concentrated in
+the JSON-building/parsing helpers at the bottom of the file, not the request
+methods themselves.
 
 ## Phase 4 — Auth (not started)
 
 `sync/GoogleAuth.kt`, `sync/AccountPicker.kt` use Android's
 `play-services-auth` and system account picker — entirely Android-specific.
 iOS needs its own path: either Google's iOS Sign-In SDK, or a generic OAuth
-flow via `ASWebAuthenticationSession`. This will likely become an
-`expect`/`actual` "give me an access token" interface in `shared/`, with
-completely separate platform implementations behind it. (Note: Phase 2 used
-a plain interface + DI instead of `expect`/`actual` for file storage — the
-same approach is worth considering here too, since it worked out simpler.)
+flow via `ASWebAuthenticationSession`. This will likely become a plain
+interface + DI in `shared/` (the same pattern Phase 2 used for file storage,
+rather than `expect`/`actual` — it worked out simpler there), something like
+"give me an access token, or tell me you need the user to consent" — with
+completely separate platform implementations behind it.
+
+**`sync/SyncManager.kt` belongs to this phase too**, not Phase 3 — see the
+note there. Porting it means redesigning `SyncResult.NeedsConsent` (currently
+holds an Android `PendingIntent`, which has no iOS equivalent) into something
+generic enough for both platforms' consent flows, alongside whatever shape
+the new auth interface takes. Its actual sync orchestration logic (resolving
+the account from the token, `ensureSpreadsheet`, push/pull via `SheetsApi`) is
+otherwise plain Kotlin and should port with minimal change once the auth
+interface exists.
 
 ## Phase 5 — UI (not started, the biggest remaining chunk)
 
@@ -190,10 +233,13 @@ Program membership from Phase 6.
 
 ---
 
-**Current state**: Phases 0–2 done, and the Android side of all three is
-now confirmed by two real, successful Android Studio builds — not just this
-environment's structural checks — the first hard signal on this whole
-scaffold. The iOS side (Kotlin/Native compilation, and everything in Phase 3
-onward) is still unverified — this environment still has no network path to
-Maven Central/Google's Maven repo, so all of Claude's own checking stays
-structural/static; Bennett verifies by building for real.
+**Current state**: Phases 0–2 done and confirmed by two real Android Studio
+builds. Phase 3 is done for `SheetsApi.kt`; `SyncManager.kt` moved into
+Phase 4's scope (see that phase's note) since its type signature is
+inseparable from the auth mechanism. Everything from here on is still
+unverified by a real compiler — this environment still has no network path
+to Maven Central/Google's Maven repo, so all of Claude's own checking stays
+structural/static; Bennett verifies by building for real. Given how cleanly
+Phases 0–2 came back from that first real build, the next thing worth doing
+is another Android Studio sync now that Ktor's in the mix, before going
+further into Phase 4/5.
