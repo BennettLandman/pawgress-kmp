@@ -10,10 +10,10 @@ untouched.
 
 - `shared/` — the KMP module. `commonMain` holds code that runs identically
   on Android and iOS; `androidMain`/`iosMain` hold platform-specific pieces
-  (currently both empty placeholders — nothing has needed them yet).
+  (now used for the first time in Phase 2 — see below).
 - `androidApp/` — a thin Android application module. Currently just a
-  placeholder `MainActivity` that lists the coach roster from `shared/`, to
-  prove the wiring works end to end.
+  placeholder `MainActivity` that lists the coach roster and loads the
+  persisted profile from `shared/`, to prove the wiring works end to end.
 - `iosApp/` — Swift/Xcode side. **The `.xcodeproj` itself is not checked in
   yet** — see `iosApp/README.md` for the one-time manual setup (Xcode
   project files are too fragile to hand-write outside Xcode). The Swift
@@ -56,28 +56,60 @@ JVM-only and doesn't exist on Kotlin/Native (iOS):
   change their call sites, only their imports.
 - `coach/MotivationCatalog.kt` — same date-API swap; logic unchanged.
 
-**Not yet checked**: this hasn't been built with Gradle anywhere (Maven/
-Google's servers are blocked from this session's shell access to your Mac,
-same as they always have been for the Android project). The `kotlinx-datetime`
-API calls here are written from documentation, not verified by a compiler.
-**The first thing to do when you open this in Android Studio is let Gradle
-sync and fix whatever it flags** — expect maybe a handful of small API-name
-issues in `GymDay.kt`/`DateCompat.kt`, nothing structural.
+## Phase 2 — Persistence (done)
 
-## Phase 2 — Persistence (not started)
+`LiftRepository.kt` (now `shared/commonMain/.../data/LiftRepository.kt`,
+ported at ~820 lines) replaced its three Android/JVM-only dependencies:
 
-`LiftRepository.kt` (808 lines) is next. It currently uses:
-- `android.content.Context` for the app's files directory,
-- `org.json.JSONObject`/`JSONArray` (Android-bundled, not available on iOS),
-- `java.io.File` for atomic tmp-file-rename writes.
+- **File access.** `android.content.Context` + `java.io.File` became a small
+  `AppFileStorage` interface (`read(): String?`, `writeAtomic(content: String)`)
+  in `commonMain`, with two implementations: `AndroidAppFileStorage`
+  (`androidMain`, backed by `Context.filesDir`, same atomic tmp-rename write
+  as before) and `IosAppFileStorage` (`iosMain`, backed by `NSFileManager`'s
+  Documents directory). This is a plain interface + platform classes rather
+  than `expect`/`actual` (the originally planned approach) — each app target
+  just constructs the right one and passes it into `LiftRepository`'s
+  constructor at startup (see `MainActivity.kt` / `ContentView.swift`). Same
+  end result, less machinery.
+- **JSON.** `org.json.JSONObject`/`JSONArray` (Android-bundled, not available
+  on iOS) became `kotlinx.serialization` with a small set of private `@Serializable`
+  DTOs (`ProfileDto`, `MachineDto`, `LogEntryDto`, `RootDto`,
+  `LegacyRootDto`) at the bottom of `LiftRepository.kt`, mirroring the
+  original file's own "JSON conversions" section. `Profile`/`Machine`/`LogEntry`
+  themselves are deliberately left un-annotated — the DTOs are the only place
+  that knows about the wire format. The version-1 legacy single-profile file
+  format is still handled exactly as before.
+- **IDs.** `java.util.UUID` (JVM-only) became `kotlin.uuid.Uuid` — new in the
+  Kotlin 2.0.20+ common stdlib, `@OptIn(ExperimentalUuidApi::class)`, works
+  identically on Android and iOS.
+- **Time.** `System.currentTimeMillis()` became `kotlinx.datetime.Clock.System.now().toEpochMilliseconds()`,
+  matching the Phase 1 date-API swap.
+- **Dispatcher.** The background persistence write used `Dispatchers.IO`
+  originally; this port uses `Dispatchers.Default` instead, only because this
+  session can't compile for Kotlin/Native to confirm `Dispatchers.IO`'s
+  exact availability/behavior at this exact Kotlin+coroutines version pair.
+  For a few-KB JSON write the difference is not meaningful — if you'd rather
+  match the original exactly, it's a one-word change in `LiftRepository.kt`.
+- Added dependencies to `shared/build.gradle.kts`: `kotlinx-coroutines-core`
+  (as `api`, not `implementation` — `LiftRepository`'s public `StateFlow`
+  properties expose it to `androidApp`/`iosApp`, same reasoning applied to
+  `kotlinx-datetime`, which was quietly `implementation`-only before and has
+  been switched to `api` too, since `CoachTheme.isActiveOn(LocalDate)` etc.
+  already needed it downstream) and `kotlinx-serialization-json` (internal
+  detail, stayed `implementation`). Added the
+  `org.jetbrains.kotlin.plugin.serialization` Gradle plugin alongside it.
+- All business logic — profile activation/adoption, every mutation method,
+  the pawprint/coach/outfit economy, the Sheets-restore merge — is unchanged
+  from the original, since it was already plain Kotlin.
 
-Plan: define an `expect`/`actual` file-access abstraction in `shared/`
-(`androidMain` implements it via `Context.filesDir`, `iosMain` via
-`NSFileManager`), and replace `org.json` with `kotlinx.serialization` (fully
-multiplatform, and arguably nicer than hand-rolled JSON parsing anyway). The
-actual repository logic (profile switching, mutation functions, pawprint
-math) is otherwise plain Kotlin and should port with minimal changes once
-those two swaps are in place.
+**Not yet checked, same caveat as Phase 1**: nothing here has been compiled.
+The single piece with the most real uncertainty is `IosAppFileStorage.kt`'s
+Foundation interop calls (`NSString.stringWithContentsOfFile`, `writeToFile`,
+`NSFileManager`) — those signatures are written from documented Kotlin/Native
+↔ Objective-C bridging behavior, not verified by Xcode. If Xcode's error list
+flags anything in Phase 6, that file is the first place to look; everything
+else in Phase 2 is ordinary multiplatform Kotlin and much less likely to need
+changes.
 
 ## Phase 3 — Sync / networking (not started)
 
@@ -96,7 +128,9 @@ drop-in `DateTimeFormatter` equivalent at the version pinned here).
 iOS needs its own path: either Google's iOS Sign-In SDK, or a generic OAuth
 flow via `ASWebAuthenticationSession`. This will likely become an
 `expect`/`actual` "give me an access token" interface in `shared/`, with
-completely separate platform implementations behind it.
+completely separate platform implementations behind it. (Note: Phase 2 used
+a plain interface + DI instead of `expect`/`actual` for file storage — the
+same approach is worth considering here too, since it worked out simpler.)
 
 ## Phase 5 — UI (not started, the biggest remaining chunk)
 
@@ -133,6 +167,9 @@ Program membership from Phase 6.
 
 ---
 
-**Current state**: Phases 0–1 done. Everything else is untouched Android-only
+**Current state**: Phases 0–2 done. Everything else is untouched Android-only
 code still living only in the original `LiftLog` repo, to be ported
-phase-by-phase in future sessions.
+phase-by-phase in future sessions. **The first real test of any of this is
+opening `~/dev/Pawgress` in Android Studio and letting Gradle sync** — no
+build has been run anywhere yet (Phases 0–2 alike), since this environment
+has no network path to Maven Central/Google's Maven repo.

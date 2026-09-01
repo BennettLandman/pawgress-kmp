@@ -1,6 +1,7 @@
 plugins {
     id("org.jetbrains.kotlin.multiplatform")
     id("com.android.library")
+    id("org.jetbrains.kotlin.plugin.serialization")
 }
 
 kotlin {
@@ -23,7 +24,14 @@ kotlin {
 
     sourceSets {
         commonMain.dependencies {
-            implementation("org.jetbrains.kotlinx:kotlinx-datetime:0.6.1")
+            // api, not implementation: LiftRepository's public surface (StateFlow<Profile>,
+            // CoachTheme.isActiveOn(LocalDate), etc.) exposes these types to androidApp/iosApp,
+            // so consumers need them on their own compile classpath too.
+            api("org.jetbrains.kotlinx:kotlinx-datetime:0.6.1")
+            api("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.9.0")
+            // Serialization is purely an internal persistence detail (private DTOs in
+            // LiftRepository.kt), so this stays implementation-only.
+            implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.7.3")
         }
         commonTest.dependencies {
             implementation(kotlin("test"))
