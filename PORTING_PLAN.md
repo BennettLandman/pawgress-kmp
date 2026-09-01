@@ -299,7 +299,7 @@ need registering in Google Cloud Console before real sign-in works, even
 though the code compiles. That's a one-time manual step for Bennett, not
 something Claude can do.
 
-## Phase 5 — UI (in progress: infra + asset lookup + MainViewModel + MainScreen done)
+## Phase 5 — UI (all six screens + navigation shell done, pending one more real build)
 
 All of `ui/*.kt` (MainScreen, CoachScreen, SettingsScreen, TrendsScreen,
 FunFactsScreen, LogSheet, MainViewModel, the art/icon lookup catalogs) needs
@@ -534,11 +534,59 @@ out of commonMain. The real `Intent.ACTION_VIEW` call becomes
 `MainActivity.kt`'s job once it's wired up (iOS gets its own
 implementation in Phase 6).
 
-**Not yet touched (not build-confirmed yet either)**: wiring the real
-`MainActivity.kt` (and iOS's entry point) to actually construct
-`MainViewModel`, navigate between all six screens, and supply the
-`onOpenUrl` callback plus the account-picker/consent flows -- replacing
-the current smoke-test screen. This is the last piece of Phase 5.
+**`MainActivity.kt` rewired to the real thing -- Phase 5 is now feature-complete,
+pending one more real build.** The entire navigation shell (`AppRoot`) --
+screen routing, the `LogSheet` overlay, `Scaffold`/`SnackbarHost`, the
+account-picker and message `LaunchedEffect`s -- moved out of LiftLog's
+Android-only `MainActivity.kt` into a new shared
+`shared/src/commonMain/kotlin/.../ui/AppRoot.kt`, since nothing in it turned
+out to actually be platform-specific once two things are pushed up as
+constructor callbacks: launching the system account picker and opening a
+URL (the same callback-injection pattern used everywhere else in this
+port). The consent flow needed no callback at all -- Phase 4's
+`AuthProvider` redesign already moved that entirely behind
+`SyncManager`/`MainViewModel`, invisible to this navigation layer. This
+makes `AppRoot` the single entry point both `androidApp`'s `MainActivity.kt`
+and (Phase 6) iOS's `ContentView.swift` will call.
+
+Three deliberate simplifications versus the original, all noted in
+`AppRoot.kt`'s own doc comment rather than made silently: `collectAsState()`
+instead of `collectAsStateWithLifecycle()` (the latter is
+Android/lifecycle-runtime-compose-specific and not yet a proven commonMain
+dependency); plain `remember` instead of `rememberSaveable` for
+screen-navigation state (avoids pulling in the unverified
+`compose.runtimeSaveable` Compose Multiplatform artifact on top of
+everything else already unverified in this change) -- a real behavior
+change, since a process death now reopens to the main screen rather than
+wherever the user was; and Android's `BackHandler` (system back button
+collapsing a subscreen to Main) deferred entirely, since it's Android-only
+with no clean multiplatform equivalent yet and cross-platform back handling
+in Compose Multiplatform is still immature enough to defer rather than
+guess at. All three are flagged as easy follow-ups once there's a second
+platform to actually test against.
+
+`MainActivity.kt` itself replaces the Phase 4 smoke-test screen: `MainViewModel`
+now constructs via `by viewModels { viewModelFactory { initializer { ... } } }`
+(`androidx.lifecycle:lifecycle-viewmodel-ktx`, confirmed via Android's own
+official docs before use -- a third guessed-API build break in one session
+felt like tempting fate after the two `kotlinx-datetime` misses above) with
+real constructor arguments (a `LiftRepository` + `SyncManager` built from
+`AndroidAppFileStorage`/`AndroidAuthProvider`), replacing the no-arg
+`by viewModels()` the placeholder never needed. A second
+`ActivityResultLauncher` (`accountLauncher`, `StartActivityForResult`) is
+registered alongside the existing consent one, resolving the chosen account
+to an email via `AccountPicker.accountFrom()` before calling
+`viewModel.onAccountChosen(email)`. `onOpenUrl` uses plain
+`android.net.Uri.parse()` rather than core-ktx's `toUri()` extension --
+same outcome, one fewer import to get wrong on unverified toolchain.
+`androidApp/build.gradle.kts` adds `lifecycle-viewmodel-ktx:2.11.0` and
+bumps the three existing `2.8.7` lifecycle dependencies to `2.11.0` to
+match `shared`'s pinned version.
+
+**Not yet build-confirmed**: neither the `AppRoot`-in-commonMain promotion
+nor the `viewModelFactory`/`initializer` wiring has been through a real
+compiler yet -- both are new toolchain surface introduced in the same
+commit. Waiting on one more `assembleDebug` before calling Phase 5 done.
 
 ## Phase 6 — iOS app wiring (not started)
 
@@ -569,6 +617,9 @@ wiring happens, and `IosAuthProvider` is a deliberate stub either way (see
 Phase 4). Everything Phase 5 on is unverified by a real compiler — this
 environment still has no network path to Maven Central/Google's Maven repo,
 so all of Claude's own checking stays structural/static; Bennett verifies by
-building for real. Next up: Phase 5 (Compose Multiplatform UI port) — the
-biggest remaining chunk — unless Bennett would rather wire up real sign-in
-UI first to exercise Phase 4's auth code end to end.
+building for real. Phase 5 (Compose Multiplatform UI port) is now
+feature-complete -- all six original screens plus the shared `AppRoot`
+navigation shell and the real `MainActivity.kt` wiring -- pending one more
+`assembleDebug` to confirm the `viewModelFactory`/`initializer` pattern and
+the `AppRoot`-in-commonMain promotion both actually compile. Next up after
+that: Phase 6 (the real Xcode project and iOS entry-point wiring).
