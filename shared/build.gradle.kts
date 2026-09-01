@@ -28,6 +28,11 @@ kotlin {
         iosTarget.binaries.framework {
             baseName = "Shared"
             isStatic = true
+            // MainViewModel.kt (Phase 5) extends androidx.lifecycle.ViewModel,
+            // now a genuine multiplatform artifact -- export() is needed so
+            // Swift/Xcode callers (Phase 6) can actually see that type through
+            // the compiled framework, not just Kotlin consumers.
+            export("androidx.lifecycle:lifecycle-viewmodel:2.11.0")
         }
     }
 
@@ -40,6 +45,13 @@ kotlin {
             api("org.jetbrains.kotlinx:kotlinx-datetime:0.6.1")
             api("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.9.0")
             api("io.ktor:ktor-client-core:3.5.2")
+            // The cross-platform ViewModel/viewModelScope base class for
+            // MainViewModel.kt (Phase 5) -- a genuine multiplatform artifact
+            // (androidx.lifecycle, not a JetBrains fork) since 2.8.0. api,
+            // not implementation, per Android's own KMP docs: the type must
+            // be exported to the iOS binary framework (see the export() call
+            // in the iosTarget.binaries.framework block above).
+            api("androidx.lifecycle:lifecycle-viewmodel:2.11.0")
             // Serialization is purely an internal persistence/networking detail (private DTOs
             // in LiftRepository.kt, dynamic JSON building in SheetsApi.kt), so this stays
             // implementation-only.
