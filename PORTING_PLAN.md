@@ -704,9 +704,23 @@ properties, and two `String`/`NSString` cast warnings in
 in particular are a well-known Kotlin/Native false positive (`str as
 NSString` warns "can never succeed" but works correctly at runtime via
 toll-free bridging; JetBrains YouTrack KT-30959) rather than a real bug, so
-left alone rather than "fixed" into something worse. **Not yet exercised**:
-actually running the built app in Simulator to see whether the ported
-Compose Multiplatform UI renders and navigates correctly -- a successful
-build is not the same thing as a working app, and that's the next real
-milestone. `IosAuthProvider` (real Google OAuth on iOS) remains the
-deliberate stub described above until that Simulator run happens.
+left alone rather than "fixed" into something worse. A second, incremental
+build (`BUILD SUCCESSFUL in 5s`, 20/25 tasks `UP-TO-DATE`) confirmed the fix
+set is stable and reproducible, and **Bennett has since run the app on the
+Simulator and confirmed the ported Compose Multiplatform UI actually
+launches and renders** -- the milestone this whole phase was building
+toward. One real bug turned up on that run: the iOS home-screen icon showed
+as a blank tile. Root cause was the same shape as the Android launcher-icon
+gap hit on 2026-09-01 (see the status doc), not a Compose/shared-code bug --
+Xcode's generated `Assets.xcassets/AppIcon.appiconset/Contents.json`
+declared the modern iOS 17+ single-size slots (universal 1024x1024 plus
+dark/tinted appearance variants) but had no actual image files wired in.
+Fixed by resizing the same source art (`LiftLog/artwork_incoming/app_icon.png`)
+the Android adaptive icon was built from down to 1024x1024 for the
+light/dark slots, generating a desaturated variant for the tinted slot per
+Apple's iOS 18 tinted-icon guidance, and writing all three `filename`s into
+`Contents.json` -- no `.pbxproj` change needed since this project uses
+Xcode's file-system-synchronized groups. Not yet rebuilt/reinstalled to
+confirm the home-screen icon now shows correctly. `IosAuthProvider` (real
+Google OAuth on iOS) remains the deliberate stub described above -- now
+that the app actually runs, it's the next real gap to close.
