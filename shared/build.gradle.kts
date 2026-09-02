@@ -20,8 +20,18 @@ kotlin {
         }
     }
 
+    // iosX64 (the Intel Simulator target) was dropped deliberately: recent
+    // versions of androidx.lifecycle-viewmodel and Compose Multiplatform's
+    // runtime/foundation/ui/components-resources no longer publish klibs for
+    // it (everyone's on Apple Silicon now), which surfaced as a real
+    // `kmpPartiallyResolvedDependenciesChecker` "Unresolved platforms:
+    // [iosX64]" failure -- non-blocking for the actual
+    // iosSimulatorArm64/iosArm64 compiles, but Android Studio's Gradle sync
+    // still flagged it. Since nobody needs the Intel simulator (Bennett's
+    // Mac -- and the Kotlin/Native toolchain this project downloads -- is
+    // arm64), removing the target removes the warning at its source rather
+    // than just tolerating it.
     listOf(
-        iosX64(),
         iosArm64(),
         iosSimulatorArm64(),
     ).forEach { iosTarget ->

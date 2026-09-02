@@ -1,3 +1,5 @@
+@file:OptIn(kotlinx.cinterop.ExperimentalForeignApi::class)
+
 package com.balandman.pawgress.data
 
 import platform.Foundation.NSDocumentDirectory

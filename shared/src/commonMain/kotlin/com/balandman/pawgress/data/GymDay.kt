@@ -1,6 +1,5 @@
 package com.balandman.pawgress.data
 
-import kotlinx.datetime.Clock
 import kotlinx.datetime.Instant
 import kotlinx.datetime.LocalDate
 import kotlinx.datetime.TimeZone
@@ -25,7 +24,7 @@ object GymDay {
     }
 
     fun today(zone: TimeZone = TimeZone.currentSystemDefault()): LocalDate =
-        dayOf(Clock.System.now().toEpochMilliseconds(), zone)
+        dayOf(currentEpochMillis(), zone)
 
     /** True when [epochMillis] falls inside the current gym day. */
     fun isToday(epochMillis: Long?, zone: TimeZone = TimeZone.currentSystemDefault()): Boolean {

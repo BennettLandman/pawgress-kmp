@@ -679,5 +679,34 @@ confirmed by a real build** -- all six original screens, the shared
 `AppRoot` navigation shell, and the real `MainActivity.kt`
 `viewModelFactory`/`initializer` wiring all compile (`assembleDebug`,
 `BUILD SUCCESSFUL in 13s`, both affected modules' Kotlin compile tasks
-actually re-executing). Next up: Phase 6 (the real Xcode project and iOS
-entry-point wiring).
+actually re-executing). **Phase 6 (real Xcode project, iOS entry point,
+first Kotlin/Native compile) is now confirmed by a real build too** --
+`BUILD SUCCESSFUL in 3m 18s` in Xcode, producing an actual `iosApp.app` for
+the iOS Simulator (Apple Silicon, `iosSimulatorArm64`) for the first time
+in this project's history. Getting there took a genuine debugging arc, not
+just a first attempt: Xcode Run Script path/sandboxing fixes, a Kotlin
+compiler version bump (2.2.10 -> 2.3.21, since current published iOS klibs
+for Ktor and Compose Multiplatform are built with newer Kotlin than this
+project started on), the `androidApp` module's old `kotlinOptions` DSL
+hitting a hard error under that newer Kotlin, dropping the now-unpublished
+`iosX64` (Intel Simulator) target, and then three real first-time
+source-level bugs once Kotlin/Native actually compiled `commonMain`/`iosMain`
+for the first time: leftover `java.lang.System`-flavored calls
+(`Clock.System.now()`, replaced by a small `expect fun currentEpochMillis()`
+in `data/CurrentTime.kt`), an `Int`/`Long` mismatch in `DateCompat.kt`'s
+`lengthOfMonth()`, and missing `@OptIn(ExperimentalForeignApi::class)` on
+`IosAppFileStorage.kt`'s Foundation interop. Full blow-by-blow is in the
+project status doc (`claude/liftlog-status.md` in the linked Claude
+project), not duplicated here. Remaining build warnings (kotlinx-datetime's
+deprecated `Instant` typealias, deprecated `monthNumber`/`dayOfMonth`
+properties, and two `String`/`NSString` cast warnings in
+`IosAppFileStorage.kt`) are all confirmed non-blocking -- the cast warnings
+in particular are a well-known Kotlin/Native false positive (`str as
+NSString` warns "can never succeed" but works correctly at runtime via
+toll-free bridging; JetBrains YouTrack KT-30959) rather than a real bug, so
+left alone rather than "fixed" into something worse. **Not yet exercised**:
+actually running the built app in Simulator to see whether the ported
+Compose Multiplatform UI renders and navigates correctly -- a successful
+build is not the same thing as a working app, and that's the next real
+milestone. `IosAuthProvider` (real Google OAuth on iOS) remains the
+deliberate stub described above until that Simulator run happens.

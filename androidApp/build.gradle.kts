@@ -31,10 +31,6 @@ android {
         targetCompatibility = JavaVersion.VERSION_17
     }
 
-    kotlinOptions {
-        jvmTarget = "17"
-    }
-
     buildFeatures {
         compose = true
     }
@@ -43,6 +39,19 @@ android {
         resources {
             excludes += "/META-INF/{AL2.0,LGPL2.1}"
         }
+    }
+}
+
+// `android { kotlinOptions { jvmTarget = "17" } }` (the old form, still
+// present until this Kotlin bump) hit a hard compile ERROR once the Kotlin
+// plugin version moved to 2.3.21 -- `var jvmTarget: String` is deprecated at
+// error level as of this Kotlin version, not just a warning, so the script
+// itself failed to compile. Replaced with the modern `compilerOptions` DSL,
+// matching the exact same pattern shared/build.gradle.kts already uses for
+// its androidTarget block.
+kotlin {
+    compilerOptions {
+        jvmTarget.set(org.jetbrains.kotlin.gradle.dsl.JvmTarget.JVM_17)
     }
 }
 

@@ -38,5 +38,12 @@ fun LocalDate.withDayOfYear(dayOfYear: Int): LocalDate = this.minusDays(this.day
 fun LocalDate.lengthOfMonth(): Int {
     val firstOfThisMonth = this.withDayOfMonth(1)
     val firstOfNextMonth = firstOfThisMonth.plusMonths(1)
-    return firstOfNextMonth.toEpochDays() - firstOfThisMonth.toEpochDays()
+    // `.toInt()` here rather than a bare subtraction: kotlinx-datetime's
+    // `toEpochDays()` returned Int as of the 0.6.1 version this project
+    // declares, but the version actually resolved for the iOS compile
+    // returned Long instead (first surfaced as a real "expected Int, actual
+    // Long" compile error in Phase 6, once Kotlin/Native ever compiled this
+    // file for the first time) -- a month is always well under Int.MAX_VALUE
+    // days, so the narrowing is safe, and it compiles under either return type.
+    return (firstOfNextMonth.toEpochDays() - firstOfThisMonth.toEpochDays()).toInt()
 }

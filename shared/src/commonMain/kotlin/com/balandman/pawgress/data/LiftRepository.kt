@@ -12,7 +12,6 @@ import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
-import kotlinx.datetime.Clock
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.decodeFromJsonElement
@@ -159,7 +158,7 @@ class LiftRepository(private val storage: AppFileStorage) {
     fun logLift(machineId: String, weight: Int, difficulty: Difficulty? = null): LogEntry? {
         val machine = machine(machineId) ?: return null
         val clamped = Weights.clamp(weight)
-        val now = Clock.System.now().toEpochMilliseconds()
+        val now = currentEpochMillis()
 
         // One entry per machine per gym day: re-logging replaces today's entry
         // rather than stacking up duplicates.
@@ -503,7 +502,7 @@ class LiftRepository(private val storage: AppFileStorage) {
         profile.copy(
             spreadsheetId = spreadsheetId,
             spreadsheetUrl = spreadsheetUrl,
-            lastSyncAt = Clock.System.now().toEpochMilliseconds(),
+            lastSyncAt = currentEpochMillis(),
             lastError = null,
         )
     }
