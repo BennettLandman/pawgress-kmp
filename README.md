@@ -51,7 +51,7 @@ Inside `shared/src/commonMain/kotlin/com/balandman/pawgress/`:
 | --- | --- |
 | `data/` | `Models.kt` (Machine, LogEntry, Profile), `MachineCatalog.kt` (the 36 preloaded machines), `LiftRepository.kt` (profiles + JSON persistence), `GymDay.kt` (the 4am-to-4am day), date/time compatibility helpers |
 | `sync/` | `AuthProvider.kt` (cross-platform auth interface), `SheetsApi.kt` (Google Sheets REST calls), `SyncManager.kt` (what to push, when) |
-| `coach/` | The coach gamification system — `CoachCatalog.kt` (20 coaches + costs), `CoachVoice.kt` (phrase library), `MotivationCatalog.kt`, `CoachOutfitQuotes.kt` |
+| `coach/` | The cosmetic coach gamification system (entertainment only — randomized affirmation lines from a fixed library, not training advice) — `CoachCatalog.kt` (20 coaches + costs), `CoachVoice.kt` (phrase library), `MotivationCatalog.kt`, `CoachOutfitQuotes.kt` |
 | `ui/` | All six screens (`MainScreen`, `LogSheet`, `CoachScreen`, `FunFactsScreen`, `TrendsScreen`, `SettingsScreen`), `AppRoot.kt` (shared navigation shell), `MainViewModel.kt`, artwork lookup (`MachineArt`, `MascotCatalog`, `CoachOutfitArt`) |
 
 `androidMain` and `iosMain` each hold just the platform-specific pieces
