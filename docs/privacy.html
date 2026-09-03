@@ -1,0 +1,209 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Privacy Policy — Pawgress</title>
+<meta name="description" content="How Pawgress handles your data: everything stays on your device, or in your own Google account. There is no Pawgress server.">
+<link rel="icon" href="favicon.png" type="image/png">
+<style>
+  :root {
+    --ink: #23291f; --ink-soft: #55604f; --bg: #faf8f4; --card: #ffffff;
+    --line: #e2ded4; --lav: #a99bc1; --coral: #d9795e;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --ink: #eceadf; --ink-soft: #a8b0a2; --bg: #1b201a; --card: #242b23;
+      --line: #38412f;
+    }
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0; background: var(--bg); color: var(--ink);
+    font: 16px/1.65 -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    -webkit-font-smoothing: antialiased;
+  }
+  .wrap { max-width: 44rem; margin: 0 auto; padding: 2.5rem 1.25rem 4rem; }
+  .back { color: var(--ink-soft); font-size: 0.9rem; text-decoration: none; }
+  .back:hover { text-decoration: underline; }
+  h1 { font-size: 1.9rem; margin: 1rem 0 0.25rem; letter-spacing: -0.02em; }
+  .dateline { color: var(--ink-soft); font-size: 0.92rem; margin: 0 0 2rem; }
+  h2 { font-size: 1.1rem; margin: 2.25rem 0 0.65rem; letter-spacing: -0.01em; }
+  p { margin: 0 0 1rem; }
+  ul { margin: 0 0 1rem; padding-left: 1.2rem; }
+  li { margin-bottom: 0.5rem; }
+  a { color: inherit; text-decoration-color: var(--lav); text-underline-offset: 3px; }
+  a:hover { text-decoration-color: var(--coral); }
+  .card {
+    background: var(--card); border: 1px solid var(--line);
+    border-radius: 14px; padding: 1.25rem 1.4rem; margin: 1.5rem 0;
+  }
+  .card h2 { margin-top: 0; }
+  code {
+    background: var(--card); border: 1px solid var(--line); border-radius: 5px;
+    padding: 0.1em 0.4em; font-size: 0.88em;
+  }
+  footer {
+    margin-top: 3.5rem; padding-top: 1.5rem; border-top: 1px solid var(--line);
+    color: var(--ink-soft); font-size: 0.9rem;
+  }
+  footer a { margin-right: 1.25rem; display: inline-block; }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <a class="back" href="index.html">&larr; Pawgress</a>
+  <h1>Privacy Policy</h1>
+  <p class="dateline">Last updated: September 3, 2026</p>
+
+  <div class="card">
+    <h2>The short version</h2>
+    <p>
+      Pawgress keeps your workout data on your own device. If you choose to
+      connect a Google account, it also writes that data to a spreadsheet in
+      <em>your own</em> Google Drive. There is no Pawgress server, and the
+      developer never receives, stores, or sees your data. Nothing is sold,
+      shared, or used for advertising. The app contains no analytics, no
+      trackers, and no third-party advertising software.
+    </p>
+  </div>
+
+  <h2>What Pawgress stores on your device</h2>
+  <p>
+    Pawgress saves its state to a single file (<code>pawgress.json</code>) in
+    the app's own private storage — the app's internal storage directory on
+    Android, and the app's Documents directory on iOS. That file holds:
+  </p>
+  <ul>
+    <li>your list of machines, including any you renamed, hid, or added;</li>
+    <li>your logged lifts — machine, weight, date and time, and the optional
+        difficulty rating you can attach to a set;</li>
+    <li>app state such as pawprint balance, unlocked coaches, and equipped
+        outfits;</li>
+    <li>if you sign in, the email address of the signed-in Google account
+        (used as the key that keeps each account's machines and history
+        separate) and the ID of the spreadsheet that account's data syncs to.</li>
+  </ul>
+  <p>
+    This file never leaves your device except through the optional Google
+    Sheets sync described below.
+  </p>
+
+  <h2>What Pawgress accesses in your Google account</h2>
+  <p>
+    Signing in is entirely optional; the app is fully usable without it. If you
+    do connect a Google account, Pawgress requests exactly two OAuth scopes:
+  </p>
+  <ul>
+    <li>
+      <code>https://www.googleapis.com/auth/userinfo.email</code> — to read the
+      email address of the account you selected. Pawgress uses it to tell which
+      account is signed in, so that each account gets its own machines,
+      history, and spreadsheet, and so a lift can never be written into the
+      wrong person's Drive. The address is stored locally on your device and
+      sent nowhere else.
+    </li>
+    <li>
+      <code>https://www.googleapis.com/auth/drive.file</code> — to create and
+      update a single spreadsheet, named <strong>Pawgress</strong>, in your own
+      Google Drive. This scope grants an app access <em>only</em> to files that
+      app itself created. Pawgress cannot list, read, modify, or delete any
+      other file in your Drive, and does not attempt to.
+    </li>
+  </ul>
+  <p>
+    Access tokens issued by Google are used to make these requests and are not
+    transmitted anywhere other than to Google's own APIs.
+  </p>
+
+  <h2>What gets written to the spreadsheet</h2>
+  <p>
+    One row per logged lift, with these columns: Date, Time, Exercise, Weight
+    (lb), Entry ID, Area, and Difficulty. Nothing else about you is written.
+    The spreadsheet lives in your Drive, under your control — you can open,
+    edit, export, share, or delete it at any time, exactly like any other file
+    you own.
+  </p>
+
+  <h2>What Pawgress does not do</h2>
+  <ul>
+    <li>It does not send your data to any server operated by the developer —
+        there isn't one.</li>
+    <li>It does not sell, rent, or share your data with anyone.</li>
+    <li>It contains no advertising, no advertising identifiers, and no
+        ad networks.</li>
+    <li>It contains no analytics or usage-tracking software.</li>
+    <li>It does not request or collect your location, contacts, photos,
+        microphone, camera, or health data.</li>
+    <li>It does not use your data to train machine-learning models.</li>
+  </ul>
+
+  <h2>Limited Use disclosure</h2>
+  <p>
+    Pawgress's use and transfer of information received from Google APIs to any
+    other app will adhere to the
+    <a href="https://developers.google.com/terms/api-services-user-data-policy">Google
+    API Services User Data Policy</a>, including the Limited Use requirements.
+  </p>
+
+  <h2>Deleting your data</h2>
+  <ul>
+    <li>
+      <strong>On your device:</strong> uninstalling Pawgress removes the app's
+      local data. You can also use <em>Full reset</em> in the app's Settings to
+      clear your local workout log without uninstalling.
+    </li>
+    <li>
+      <strong>In your Google Drive:</strong> delete the <strong>Pawgress</strong>
+      spreadsheet like any other Drive file. Pawgress does not keep a copy.
+    </li>
+    <li>
+      <strong>Revoking access:</strong> you can disconnect Pawgress from your
+      Google account at any time at
+      <a href="https://myaccount.google.com/permissions">myaccount.google.com/permissions</a>.
+      The app keeps working offline afterwards.
+    </li>
+  </ul>
+
+  <h2>Security</h2>
+  <p>
+    Data in transit to Google's APIs is protected by HTTPS. Local app data is
+    stored in the operating system's per-app private storage, which other apps
+    cannot read, but it is not separately encrypted by Pawgress — anyone with
+    access to your unlocked device could open the app and see its contents, as
+    with most single-user apps. If more than one Google account uses the app on
+    the same device, their data is kept in separate profiles for privacy and
+    tidiness, not as a security boundary.
+  </p>
+
+  <h2>Children</h2>
+  <p>
+    Pawgress is not directed at children under 13 and does not knowingly
+    collect personal information from them. It collects no personal information
+    at all beyond the Google account email address described above, and only
+    when a user chooses to sign in.
+  </p>
+
+  <h2>Changes to this policy</h2>
+  <p>
+    If this policy changes, the updated version will be posted on this page
+    with a new date at the top. Material changes affecting how Google user data
+    is handled will be reflected here before they take effect in the app.
+  </p>
+
+  <h2>Contact</h2>
+  <p>
+    Questions about this policy or about your data:
+    <a href="mailto:balandman@gmail.com">balandman@gmail.com</a>.
+  </p>
+
+  <footer>
+    <a href="index.html">Home</a>
+    <a href="terms.html">Terms of Service</a>
+    <a href="https://github.com/BennettLandman/pawgress-kmp">Source on GitHub</a>
+  </footer>
+
+</div>
+</body>
+</html>

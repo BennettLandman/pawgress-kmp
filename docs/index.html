@@ -1,0 +1,166 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Pawgress — gym machine weight tracker</title>
+<meta name="description" content="Pawgress tracks how much weight you lift on each gym machine. No reps, no sets, no rest timers — one number per machine per gym day.">
+<link rel="icon" href="favicon.png" type="image/png">
+<style>
+  :root {
+    --ink: #23291f;
+    --ink-soft: #55604f;
+    --bg: #faf8f4;
+    --card: #ffffff;
+    --line: #e2ded4;
+    --green: #2e3931;
+    --lav: #a99bc1;
+    --coral: #d9795e;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --ink: #eceadf;
+      --ink-soft: #a8b0a2;
+      --bg: #1b201a;
+      --card: #242b23;
+      --line: #38412f;
+      --green: #cdd6c5;
+    }
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    background: var(--bg);
+    color: var(--ink);
+    font: 16px/1.65 -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    -webkit-font-smoothing: antialiased;
+  }
+  .wrap { max-width: 44rem; margin: 0 auto; padding: 2.5rem 1.25rem 4rem; }
+  header { display: flex; align-items: center; gap: 1rem; margin-bottom: 2rem; }
+  header img { width: 72px; height: 72px; border-radius: 16px; display: block; }
+  h1 { font-size: 2rem; margin: 0; letter-spacing: -0.02em; }
+  .tagline { color: var(--ink-soft); margin: 0.3rem 0 0; font-size: 1.05rem; }
+  h2 { font-size: 1.15rem; margin: 2.5rem 0 0.75rem; letter-spacing: -0.01em; }
+  p { margin: 0 0 1rem; }
+  ul { margin: 0 0 1rem; padding-left: 1.2rem; }
+  li { margin-bottom: 0.5rem; }
+  a { color: inherit; text-decoration-color: var(--lav); text-underline-offset: 3px; }
+  a:hover { text-decoration-color: var(--coral); }
+  .card {
+    background: var(--card);
+    border: 1px solid var(--line);
+    border-radius: 14px;
+    padding: 1.25rem 1.4rem;
+    margin: 1.5rem 0;
+  }
+  .card h2 { margin-top: 0; }
+  footer {
+    margin-top: 3.5rem;
+    padding-top: 1.5rem;
+    border-top: 1px solid var(--line);
+    color: var(--ink-soft);
+    font-size: 0.9rem;
+  }
+  footer a { margin-right: 1.25rem; display: inline-block; }
+  code {
+    background: var(--card);
+    border: 1px solid var(--line);
+    border-radius: 5px;
+    padding: 0.1em 0.4em;
+    font-size: 0.88em;
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <header>
+    <img src="pawgress-icon-512.png" alt="Pawgress app icon">
+    <div>
+      <h1>Pawgress</h1>
+      <p class="tagline">Track what you lift on each gym machine.</p>
+    </div>
+  </header>
+
+  <p>
+    Pawgress is a weight-tracking app for people who work a circuit of gym
+    machines. It answers one question, fast: <em>how much did I lift on this
+    machine last time?</em> No reps, no sets, no rest timers — one number per
+    machine per gym day.
+  </p>
+
+  <h2>How it works</h2>
+  <ul>
+    <li>
+      <strong>A grid of your machines.</strong> Each tile shows the machine's
+      icon, its name, and the last weight you lifted on it — deliberately
+      large, so it's readable at arm's length while you're standing at the
+      machine.
+    </li>
+    <li>
+      <strong>One tap to log.</strong> Tapping a tile opens a sheet with the
+      previous weight already dialed in, so confirming it is a single tap.
+      Big −5 / +5 buttons and a slider handle the days it changed.
+    </li>
+    <li>
+      <strong>The day resets at 4am.</strong> A late-night session still counts
+      as that evening's workout, and nothing flips over underneath you
+      mid-workout.
+    </li>
+    <li>
+      <strong>Your machines, named your way.</strong> 36 come preloaded. Hide
+      the ones your gym doesn't have, rename them to match your gym's labels,
+      change their icons, or add your own.
+    </li>
+    <li>
+      <strong>Trends and stats.</strong> Per-machine progress charts, biggest
+      gains, streaks, and lifetime totals.
+    </li>
+    <li>
+      <strong>Coaches.</strong> Logging lifts earns pawprints, which unlock a
+      roster of cat coaches with their own personalities and seasonal outfits.
+    </li>
+  </ul>
+
+  <div class="card">
+    <h2>Optional Google Sheets sync</h2>
+    <p>
+      Pawgress works completely offline and is fully usable without signing in
+      to anything. If you choose to connect a Google account, the app creates a
+      spreadsheet named <strong>Pawgress</strong> in <em>your own</em> Google
+      Drive and mirrors each lift into it as a row, so your history is yours in
+      a plain, portable format you can open, chart, or export any time.
+    </p>
+    <p>
+      The app uses Google's <code>drive.file</code> scope, which grants access
+      only to files the app itself created. Pawgress cannot see, read, or touch
+      anything else in your Drive. There is no Pawgress server — your data goes
+      to your device and, if you opt in, to your own Google account. Nowhere
+      else. See the <a href="privacy.html">Privacy Policy</a> for the full
+      detail.
+    </p>
+  </div>
+
+  <h2>Availability</h2>
+  <p>
+    Pawgress is built with Kotlin Multiplatform and runs on both Android and
+    iOS from one shared codebase. The Android version is preparing for release
+    on Google Play; the iOS version is in active development. The source is
+    public at
+    <a href="https://github.com/BennettLandman/pawgress-kmp">github.com/BennettLandman/pawgress-kmp</a>.
+  </p>
+
+  <h2>Contact</h2>
+  <p>
+    Questions, bugs, or feedback: <a href="mailto:balandman@gmail.com">balandman@gmail.com</a>.
+  </p>
+
+  <footer>
+    <a href="privacy.html">Privacy Policy</a>
+    <a href="terms.html">Terms of Service</a>
+    <a href="https://github.com/BennettLandman/pawgress-kmp">Source on GitHub</a>
+  </footer>
+
+</div>
+</body>
+</html>
