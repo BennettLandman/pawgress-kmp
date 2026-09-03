@@ -123,6 +123,18 @@ fun CoachScreen(
                             "on new coaches and seasonal outfits.",
                         style = MaterialTheme.typography.bodySmall,
                         color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    )
+                    Spacer(Modifier.height(6.dp))
+                    // Sits above every card, so it covers browsing, selecting and
+                    // the unlock buttons on the cards themselves -- rather than
+                    // repeating the same sentence 20 times down the list.
+                    Text(
+                        "Coaches are cosmetic and just for fun. They are cartoon cats " +
+                            "whose encouragement is picked at random from a fixed set of " +
+                            "written lines -- not real trainers, and not advice about what " +
+                            "or how much to lift.",
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
                         modifier = Modifier.padding(bottom = 4.dp),
                     )
                 }

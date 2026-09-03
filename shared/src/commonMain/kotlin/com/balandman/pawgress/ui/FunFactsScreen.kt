@@ -131,6 +131,18 @@ fun FunFactsScreen(
                 MascotCard(mascotDrawable = mascotDrawable, coachName = coachName, saying = saying)
             }
 
+            // The one place a coach actually "speaks", so the clarification that
+            // the line is randomly chosen entertainment belongs directly under it.
+            item {
+                Text(
+                    "Just for fun -- your coach's line is picked at random and isn't " +
+                        "training advice.",
+                    style = MaterialTheme.typography.labelSmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    modifier = Modifier.padding(horizontal = 4.dp),
+                )
+            }
+
             item {
                 StreakCard(streak)
             }

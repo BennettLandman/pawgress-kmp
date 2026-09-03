@@ -683,6 +683,12 @@ private fun ResetSection(
 /**
  * The exact credits copy Bennett wrote, shown once at the bottom of settings —
  * below the photo he supplied, never reworded.
+ *
+ * The coaches/"not training advice" paragraph near the bottom is a later
+ * addition and is deliberately NOT part of that copy — it's the in-app
+ * counterpart to the same disclaimer on the website and in the Terms, so the
+ * entertainment framing is stated where users actually see it. Reword that one
+ * freely; leave the credits lines themselves alone.
  */
 @Composable
 private fun CreditsSection() {
@@ -744,6 +750,19 @@ private fun CreditsSection() {
             "This app does not collect or store user data in a central database. " +
                 "No sign-in is required. If you choose to sign in, your app data is " +
                 "stored in a Google Sheet associated with your Google account.",
+            style = MaterialTheme.typography.labelSmall,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+            textAlign = TextAlign.Center,
+            modifier = Modifier.padding(horizontal = 16.dp),
+        )
+        Spacer(Modifier.height(8.dp))
+        Text(
+            "The coaches are cartoon characters included for fun. Their lines are " +
+                "chosen at random from a fixed set of written phrases -- they are not " +
+                "athletic coaching, and nothing they say is advice about what or how " +
+                "much to lift. Pawgress records the numbers you enter; it does not " +
+                "evaluate your training. Consult a qualified professional before " +
+                "starting or changing an exercise program.",
             style = MaterialTheme.typography.labelSmall,
             color = MaterialTheme.colorScheme.onSurfaceVariant,
             textAlign = TextAlign.Center,
