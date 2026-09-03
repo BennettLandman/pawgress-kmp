@@ -14,6 +14,7 @@
 /captures
 /local.properties
 local.properties
+keystore.properties
 
 # iOS / Xcode
 iosApp/**/*.xcuserstate
