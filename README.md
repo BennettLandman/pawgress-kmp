@@ -106,6 +106,25 @@ of this project used, and an older compiler can't read a newer klib. See
 the comment block above the plugin versions in the root `build.gradle.kts`
 for the full story if a future dependency bump hits this again.
 
+## License
+
+Two licenses, split the conventional way:
+
+- **Source code** — [MIT](LICENSE). Short, permissive, and it carries the
+  warranty disclaimer a CC license doesn't.
+- **Documentation and artwork** — [CC BY 4.0](LICENSE-CC-BY-4.0.md). The coach
+  and mascot portraits, seasonal outfits, machine icons, app icon, the pages
+  under `docs/`, and this README. Reuse them for anything, including
+  commercially, as long as you credit us and note any changes.
+
+Creative Commons themselves recommend against applying CC licenses to
+software, which is why the code isn't under one. `LICENSE-CC-BY-4.0.md` has a
+table showing exactly which paths fall under which license, plus a suggested
+attribution line.
+
+The Pawgress **name** isn't licensed by either — build on the work freely,
+just don't present the result as the official app.
+
 ## Known caveats
 
 - **`IosAuthProvider` is a stub.** Tapping "Connect Google Account" on iOS

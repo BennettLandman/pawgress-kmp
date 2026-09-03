@@ -770,7 +770,11 @@ private fun CreditsSection() {
         )
         Spacer(Modifier.height(8.dp))
         Text(
-            "© 2026 Orinda & Bennett Landman. All rights reserved.",
+            // Was "All rights reserved." until the project adopted an open
+            // split: MIT for the code, CC BY 4.0 for the artwork and docs.
+            // Leaving the old line would have contradicted the licence files
+            // in the repo, so it states the actual terms instead.
+            "© 2026 Orinda & Bennett Landman · Artwork CC BY 4.0 · Code MIT",
             style = MaterialTheme.typography.labelSmall,
             color = MaterialTheme.colorScheme.onSurfaceVariant,
             textAlign = TextAlign.Center,
