@@ -1,0 +1,483 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>User Manual — Pawgress</title>
+<meta name="description" content="How to use Pawgress: logging lifts, reading the grid, customizing machines, trends, coaches, and Google Sheets sync.">
+<link rel="icon" href="favicon.png" type="image/png">
+<style>
+  :root {
+    --ink: #23291f; --ink-soft: #55604f; --bg: #faf8f4; --card: #ffffff;
+    --line: #e2ded4; --lav: #a99bc1; --coral: #d9795e;
+    --upper: #b96756; --core: #6e7f76; --lower: #978dae; --other: #8a968e;
+    --ve: #6e9e78; --ea: #a3c4a0; --ar: #c9be8e; --hd: #e0954f; --vh: #c1543a;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --ink: #eceadf; --ink-soft: #a8b0a2; --bg: #1b201a; --card: #242b23;
+      --line: #38412f;
+    }
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0; background: var(--bg); color: var(--ink);
+    font: 16px/1.65 -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    -webkit-font-smoothing: antialiased;
+  }
+  .wrap { max-width: 56rem; margin: 0 auto; padding: 2.5rem 1.25rem 4rem; }
+  .back { color: var(--ink-soft); font-size: 0.9rem; text-decoration: none; }
+  .back:hover { text-decoration: underline; }
+  h1 { font-size: 2rem; margin: 1rem 0 0.3rem; letter-spacing: -0.02em; }
+  .dateline { color: var(--ink-soft); font-size: 0.92rem; margin: 0 0 2rem; }
+  h2 {
+    font-size: 1.3rem; margin: 0 0 0.75rem; letter-spacing: -0.01em;
+    scroll-margin-top: 1rem;
+  }
+  h3 { font-size: 1rem; margin: 1.5rem 0 0.5rem; }
+  p { margin: 0 0 1rem; }
+  ul, ol { margin: 0 0 1rem; padding-left: 1.2rem; }
+  li { margin-bottom: 0.5rem; }
+  a { color: inherit; text-decoration-color: var(--lav); text-underline-offset: 3px; }
+  a:hover { text-decoration-color: var(--coral); }
+  code {
+    background: var(--card); border: 1px solid var(--line); border-radius: 5px;
+    padding: 0.1em 0.4em; font-size: 0.88em;
+  }
+  /* table of contents */
+  .toc {
+    background: var(--card); border: 1px solid var(--line); border-radius: 14px;
+    padding: 1.1rem 1.4rem; margin: 0 0 2.5rem;
+  }
+  .toc h2 { font-size: 0.8rem; text-transform: uppercase; letter-spacing: 0.07em;
+            color: var(--ink-soft); margin: 0 0 0.6rem; }
+  .toc ol { margin: 0; padding-left: 1.1rem; columns: 2; column-gap: 2rem; }
+  .toc li { margin-bottom: 0.3rem; }
+  @media (max-width: 34rem) { .toc ol { columns: 1; } }
+  /* a section: figure beside prose on wide screens */
+  section {
+    display: grid; grid-template-columns: 246px 1fr; gap: 2rem;
+    align-items: start; padding: 2rem 0; border-top: 1px solid var(--line);
+  }
+  section > .shot { position: sticky; top: 1.5rem; }
+  section > .shot img {
+    width: 100%; height: auto; display: block; border-radius: 18px;
+    box-shadow: 0 2px 16px rgba(0,0,0,0.10);
+  }
+  .shot figcaption {
+    font-size: 0.78rem; color: var(--ink-soft); text-align: center;
+    margin-top: 0.55rem;
+  }
+  @media (max-width: 46rem) {
+    section { grid-template-columns: 1fr; }
+    section > .shot { position: static; max-width: 246px; margin: 0 auto 0.5rem; }
+  }
+  .note {
+    background: var(--card); border: 1px solid var(--line);
+    border-left: 3px solid var(--lav);
+    border-radius: 10px; padding: 0.85rem 1.1rem; margin: 1.25rem 0;
+    font-size: 0.94rem;
+  }
+  .note strong { font-weight: 600; }
+  /* colour keys */
+  .key { list-style: none; padding: 0; margin: 0 0 1rem; }
+  .key li { display: flex; align-items: baseline; gap: 0.6rem; margin-bottom: 0.4rem; }
+  .dot {
+    width: 11px; height: 11px; border-radius: 50%; flex-shrink: 0;
+    display: inline-block; transform: translateY(1px);
+  }
+  table { border-collapse: collapse; width: 100%; margin: 0 0 1rem; font-size: 0.94rem; }
+  th, td { text-align: left; padding: 0.45rem 0.7rem; border-bottom: 1px solid var(--line); }
+  th { font-weight: 600; }
+  footer {
+    margin-top: 3rem; padding-top: 1.5rem; border-top: 1px solid var(--line);
+    color: var(--ink-soft); font-size: 0.9rem;
+  }
+  footer a { margin-right: 1.25rem; display: inline-block; }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <a class="back" href="index.html">&larr; Pawgress</a>
+  <h1>User Manual</h1>
+  <p class="dateline">For Pawgress 1.0 · last updated September 3, 2026</p>
+
+  <p>
+    Pawgress answers one question quickly: <em>how much did I lift on this
+    machine last time?</em> Everything below explains how to do that, and what
+    the rest of the app does once you want more than the number.
+  </p>
+
+  <div class="note">
+    The pictures in this manual are illustrations of the interface, drawn to
+    match the app's real layout, labels, and colors. Your screen may differ
+    slightly depending on your device, text size, and whether you're in light
+    or dark mode.
+  </div>
+
+  <nav class="toc">
+    <h2>Contents</h2>
+    <ol>
+      <li><a href="#grid">The main grid</a></li>
+      <li><a href="#logging">Logging a lift</a></li>
+      <li><a href="#dots">Reading the colored dots</a></li>
+      <li><a href="#gymday">The gym day (4am reset)</a></li>
+      <li><a href="#machines">Customizing your machines</a></li>
+      <li><a href="#funfacts">Fun Facts</a></li>
+      <li><a href="#trends">Trends</a></li>
+      <li><a href="#coaches">Pawprints and coaches</a></li>
+      <li><a href="#sync">Google Sheets sync</a></li>
+      <li><a href="#resets">Resetting and starting over</a></li>
+    </ol>
+  </nav>
+
+  <!-- ------------------------------------------------------------- grid -->
+  <section id="grid">
+    <figure class="shot">
+      <img src="img/screen-main.svg" alt="The Pawgress main grid: a tile per machine showing artwork, last weight, and name.">
+      <figcaption>The main grid</figcaption>
+    </figure>
+    <div>
+      <h2>The main grid</h2>
+      <p>
+        This is the screen you'll spend nearly all your time on. Each tile is
+        one machine, showing its artwork, the last weight you lifted on it, and
+        its name. The weight is deliberately large — it needs to be readable at
+        arm's length while you're standing at the machine.
+      </p>
+      <p>
+        Under the <strong>Pawgress</strong> title is today's date and your
+        progress, like <em>4 of 22 done</em>. Tiles you've already logged today
+        turn a filled terracotta with a checkmark, so a glance tells you what's
+        left in your circuit.
+      </p>
+      <h3>What's in the top bar</h3>
+      <table>
+        <tr><th>Tap this</th><th>To get</th></tr>
+        <tr><td>The word <strong>Pawgress</strong></td><td>Fun Facts — your stats and your coach</td></tr>
+        <tr><td>The small graph icon</td><td>Trends — charts of your progress</td></tr>
+        <tr><td>The paw and number</td><td>Coaches — spend pawprints</td></tr>
+        <tr><td>The gear</td><td>Settings</td></tr>
+      </table>
+      <p>
+        Machines are grouped by body area — upper body first, then core, then
+        lower, then everything else — but they're laid out as one plain grid so
+        an area with an odd number of machines never leaves a gap.
+      </p>
+    </div>
+  </section>
+
+  <!-- ---------------------------------------------------------- logging -->
+  <section id="logging">
+    <figure class="shot">
+      <img src="img/screen-log.svg" alt="The logging sheet: machine artwork, minus five and plus five buttons, a large weight, a slider, difficulty pills, and a confirm button.">
+      <figcaption>Logging a lift</figcaption>
+    </figure>
+    <div>
+      <h2>Logging a lift</h2>
+      <p>
+        Tap any tile and a sheet slides up with last time's weight already
+        dialed in. If nothing changed — which is most days — the big button at
+        the bottom already says <strong>Confirm 130 lb</strong>, and you're
+        done in one tap.
+      </p>
+      <p>If today <em>is</em> different, three ways to change the number:</p>
+      <ul>
+        <li><strong>−5 / +5</strong> — the large circular buttons, for the
+            usual small adjustment.</li>
+        <li><strong>The slider</strong> — for a bigger jump.</li>
+      </ul>
+      <p>
+        The range is 10–300 lb in 5 lb steps, and the button label changes to
+        <strong>Log 135 lb</strong> once the number differs from last time, so
+        you always know whether you're repeating or changing.
+      </p>
+      <h3>How did it feel? (optional)</h3>
+      <p>
+        Five pills — Very Easy, Easy, About Right, Hard, Very Hard — let you
+        record how the set felt. It's entirely optional; tap the selected pill
+        again to clear it. Whatever you pick shows up later as a small colored
+        dot on the tile and travels to your spreadsheet.
+      </p>
+      <h3>Fixing a mistake</h3>
+      <p>
+        Tap a completed tile again to change the weight, or use
+        <strong>Undo today's entry</strong> to remove it entirely. If the entry
+        had already synced, the stale row is removed from your spreadsheet
+        rather than left sitting next to the corrected one.
+      </p>
+    </div>
+  </section>
+
+  <!-- ------------------------------------------------------------- dots -->
+  <section id="dots">
+    <div style="grid-column: 1 / -1;">
+      <h2>Reading the colored dots</h2>
+      <p>Two different dots appear on a tile, and they mean different things.</p>
+      <h3>Corner dot — body area</h3>
+      <p>Top-right of each tile, telling you which part of the body it works:</p>
+      <ul class="key">
+        <li><span class="dot" style="background:var(--upper)"></span> <span><strong>Upper body</strong></span></li>
+        <li><span class="dot" style="background:var(--core)"></span> <span><strong>Core</strong></span></li>
+        <li><span class="dot" style="background:var(--lower)"></span> <span><strong>Lower body</strong></span></li>
+        <li><span class="dot" style="background:var(--other)"></span> <span><strong>Other</strong></span></li>
+      </ul>
+      <p>
+        The same colors appear in Settings and in the Trends breakdown, so a
+        color means the same thing everywhere in the app.
+      </p>
+      <h3>Dot beside the weight — how it felt</h3>
+      <p>Only shows if you recorded a difficulty for your last set:</p>
+      <ul class="key">
+        <li><span class="dot" style="background:var(--ve)"></span> <span>Very Easy</span></li>
+        <li><span class="dot" style="background:var(--ea)"></span> <span>Easy</span></li>
+        <li><span class="dot" style="background:var(--ar)"></span> <span>About Right</span></li>
+        <li><span class="dot" style="background:var(--hd)"></span> <span>Hard</span></li>
+        <li><span class="dot" style="background:var(--vh)"></span> <span>Very Hard</span></li>
+      </ul>
+    </div>
+  </section>
+
+  <!-- ----------------------------------------------------------- gymday -->
+  <section id="gymday">
+    <div style="grid-column: 1 / -1;">
+      <h2>The gym day (4am reset)</h2>
+      <p>
+        Pawgress's day runs <strong>4am to 4am</strong>, not midnight to
+        midnight. A session that runs past midnight still counts as that
+        evening's workout, and nothing flips over underneath you mid-workout.
+      </p>
+      <p>
+        At 4am every tile goes back to its un-done state, ready for the next
+        session, and the weights stay exactly where you left them. Rest days
+        simply pass untouched — there's nothing to dismiss and nothing to
+        skip.
+      </p>
+    </div>
+  </section>
+
+  <!-- --------------------------------------------------------- machines -->
+  <section id="machines">
+    <figure class="shot">
+      <img src="img/screen-settings.svg" alt="The Settings screen: Google account card, restore option, machine list with visibility toggles, add a machine, and reset buttons.">
+      <figcaption>Settings</figcaption>
+    </figure>
+    <div>
+      <h2>Customizing your machines</h2>
+      <p>
+        Pawgress ships with 36 machines, 22 of them visible from the start.
+        Your gym won't match that exactly, so Settings (the gear icon) lets you
+        make the grid look like your actual circuit.
+      </p>
+      <ul>
+        <li><strong>Hide what you don't use.</strong> The toggle beside each
+            machine removes it from the grid. Its history is kept, so turning
+            it back on later loses nothing.</li>
+        <li><strong>Rename to match your gym's labels.</strong> If the sign on
+            the machine says something different from what Pawgress calls it,
+            change it — you'll find it faster.</li>
+        <li><strong>Change the icon</strong> if a different picture reads
+            better to you at a glance.</li>
+        <li><strong>Change the body area</strong> to re-group where it sits in
+            the grid.</li>
+        <li><strong>Add your own</strong> with <strong>Add a machine</strong>
+            for anything your gym has that isn't in the catalog.</li>
+      </ul>
+      <p>
+        <strong>Show all</strong> and <strong>Hide all</strong> at the top of
+        the list are the fast way to start from everything or from nothing and
+        work toward your circuit.
+      </p>
+    </div>
+  </section>
+
+  <!-- --------------------------------------------------------- funfacts -->
+  <section id="funfacts">
+    <figure class="shot">
+      <img src="img/screen-funfacts.svg" alt="Fun Facts: a coach portrait with a speech bubble, a streak card, and stat cards.">
+      <figcaption>Fun Facts</figcaption>
+    </figure>
+    <div>
+      <h2>Fun Facts</h2>
+      <p>
+        Tap the word <strong>Pawgress</strong> at the top of the grid. The
+        chips across the top — <strong>Today</strong>,
+        <strong>This Week</strong>, <strong>This Month</strong>, and
+        <strong>∞</strong> for all time — change the window every card below
+        is measured over.
+      </p>
+      <p>You'll see:</p>
+      <ul>
+        <li><strong>Your coach</strong>, with a line of encouragement.</li>
+        <li><strong>Your streak</strong> — consecutive gym days with at least
+            one lift logged.</li>
+        <li><strong>Stat cards</strong> — how many lifts, total weight moved,
+            your most-logged machine for the period.</li>
+      </ul>
+      <div class="note">
+        <strong>About the coaches:</strong> they're cartoon characters included
+        for fun. Their lines are picked at random from a fixed set of written
+        phrases — not athletic coaching, and not advice about what or how much
+        to lift.
+      </div>
+    </div>
+  </section>
+
+  <!-- ----------------------------------------------------------- trends -->
+  <section id="trends">
+    <figure class="shot">
+      <img src="img/screen-trends.svg" alt="Trends: a bar chart of weight lifted per week, a biggest gains list, and an overlay line chart.">
+      <figcaption>Trends</figcaption>
+    </figure>
+    <div>
+      <h2>Trends</h2>
+      <p>
+        The small graph icon beside the title opens Trends. As on Fun Facts,
+        the chips set the window: <strong>This Week</strong>,
+        <strong>This Month</strong>, <strong>This Year</strong>, or
+        <strong>∞</strong>.
+      </p>
+      <h3>Weight lifted per period</h3>
+      <p>
+        A bar per day, week, or month depending on the range you picked — the
+        quickest read on whether you've been showing up.
+      </p>
+      <h3>Biggest gains this range</h3>
+      <p>
+        Which machines went up the most over the window, largest first, each
+        with its body-area dot.
+      </p>
+      <h3>Relative progress</h3>
+      <p>
+        Several machines on one chart. Each line is rebased to its own starting
+        weight in the range, so a leg press at 200 lb and a biceps curl at 40 lb
+        can be compared on the same axis — you're seeing <em>change</em>, not
+        absolute load. Use the <strong>All ▸ body area ▸ machine</strong> chips
+        to narrow it down.
+      </p>
+      <p>
+        Everything on this screen counts only machines currently visible in
+        your grid, so hidden machines don't quietly skew the totals.
+      </p>
+    </div>
+  </section>
+
+  <!-- ---------------------------------------------------------- coaches -->
+  <section id="coaches">
+    <figure class="shot">
+      <img src="img/screen-coaches.svg" alt="The Coaches screen: a banner of cats, then cards for each coach with unlock and select buttons.">
+      <figcaption>Coaches</figcaption>
+    </figure>
+    <div>
+      <h2>Pawprints and coaches</h2>
+      <p>
+        You earn <strong>one pawprint</strong> the first time you log a given
+        machine on a given gym day. Logging the same machine again later that
+        day doesn't earn more, and undoing an entry refunds the pawprint.
+        Your balance sits in the top bar; tapping it opens this screen.
+      </p>
+      <p>
+        There are 20 coaches. The first is free; the rest cost 10, 15, 20 and
+        so on up to 100 pawprints. Once unlocked, tap <strong>Select</strong>
+        to make one yours — that's the coach who appears on Fun Facts.
+      </p>
+      <h3>Outfits</h3>
+      <p>
+        Each coach has seasonal outfits at 15 pawprints apiece, bought and
+        equipped per coach. They're <strong>time-gated</strong> — available
+        only during their real-world window, like Halloween through October, or
+        Summer Shades from June to August. Outside its window a coach quietly
+        returns to their normal look and your choice reappears next year with
+        nothing to re-select. Switching back to the base look is always free.
+      </p>
+      <div class="note">
+        Coaches and outfits are cosmetic. Everything about them is earned by
+        logging workouts — there is nothing to buy with real money anywhere in
+        Pawgress.
+      </div>
+    </div>
+  </section>
+
+  <!-- ------------------------------------------------------------- sync -->
+  <section id="sync">
+    <div style="grid-column: 1 / -1;">
+      <h2>Google Sheets sync</h2>
+      <p>
+        Optional, and off until you turn it on. Pawgress works completely
+        offline; sync is a mirror of your data, never the source of truth.
+      </p>
+      <p>
+        In Settings, tap <strong>Sign in with Google</strong> and choose an
+        account. Pawgress creates a spreadsheet called <strong>Pawgress</strong>
+        in your own Google Drive and adds a row per lift:
+      </p>
+      <p><code>Date | Time | Exercise | Weight (lb) | Entry ID | Area | Difficulty</code></p>
+      <p>
+        Lifts logged offline queue up and go on the next sync.
+        <strong>Sync now</strong> pushes immediately, and
+        <strong>Open sheet</strong> jumps straight to the spreadsheet.
+      </p>
+      <h3>Restore from Google Sheet</h3>
+      <p>
+        Reads the whole sheet back and merges in anything missing locally —
+        useful after a reinstall or on a new phone. It matches by Entry ID, so
+        running it twice does nothing the second time. It only ever adds: it
+        never deletes or overwrites what's already on your device, and it never
+        retroactively awards pawprints.
+      </p>
+      <h3>Each account gets its own everything</h3>
+      <p>
+        Sign in as someone else and the whole app switches over — their
+        machines, their history, their spreadsheet. Sign back and you're
+        exactly where you left off. Two people can share a phone without seeing
+        each other's numbers. Whatever you set up <em>before</em> signing in is
+        adopted by the first account to sign in, so nothing configured early is
+        lost.
+      </p>
+      <div class="note">
+        Pawgress uses Google's <code>drive.file</code> permission, which grants
+        access only to files the app itself created. It cannot see anything
+        else in your Drive. There is no Pawgress server — see the
+        <a href="privacy.html">Privacy Policy</a>.
+      </div>
+    </div>
+  </section>
+
+  <!-- ----------------------------------------------------------- resets -->
+  <section id="resets">
+    <div style="grid-column: 1 / -1;">
+      <h2>Resetting and starting over</h2>
+      <p>Two options at the bottom of Settings, and they differ a lot:</p>
+      <table>
+        <tr><th>Option</th><th>What it does</th></tr>
+        <tr>
+          <td><strong>Reset today</strong></td>
+          <td>Clears only today's logged entries, as if the session hadn't
+              happened yet. Your history is untouched.</td>
+        </tr>
+        <tr>
+          <td><strong>Full reset</strong></td>
+          <td>Erases your entire local workout log. Both ask you to confirm
+              first.</td>
+        </tr>
+      </table>
+      <p>
+        Neither one touches your Google Sheet, your pawprints, your unlocked
+        coaches, or your outfits. If sync is on, your history is still in the
+        spreadsheet after a full reset, and
+        <strong>Restore from Google Sheet</strong> will bring it back.
+      </p>
+    </div>
+  </section>
+
+  <footer>
+    <a href="index.html">Home</a>
+    <a href="privacy.html">Privacy Policy</a>
+    <a href="terms.html">Terms of Service</a>
+    <a href="https://github.com/BennettLandman/pawgress-kmp">Source on GitHub</a>
+  </footer>
+
+</div>
+</body>
+</html>
