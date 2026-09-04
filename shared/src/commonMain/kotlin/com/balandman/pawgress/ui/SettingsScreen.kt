@@ -64,6 +64,7 @@ import com.balandman.pawgress.data.Machine
 import com.balandman.pawgress.data.MachineCatalog
 import com.balandman.pawgress.data.MachineGroup
 import com.balandman.pawgress.data.SyncState
+import com.balandman.pawgress.data.WeightRange
 import com.balandman.pawgress.resources.Res
 import com.balandman.pawgress.resources.credits_photo
 import com.balandman.pawgress.ui.theme.GroupColors
@@ -81,6 +82,9 @@ fun SettingsScreen(
     onSyncNow: () -> Unit,
     onSetVisible: (String, Boolean) -> Unit,
     onSetAllVisible: (Boolean) -> Unit,
+    machineWeights: WeightRange,
+    freeWeightWeights: WeightRange,
+    onSetWeightRange: (Equipment, Int, Int, Int) -> Unit,
     onRename: (String, String) -> Unit,
     onSetIcon: (String, String, Boolean) -> Unit,
     onSetGroup: (String, MachineGroup) -> Unit,
@@ -232,6 +236,14 @@ fun SettingsScreen(
                     )
                     HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant)
                 }
+            }
+
+            item {
+                WeightRangeSection(
+                    machineWeights = machineWeights,
+                    freeWeightWeights = freeWeightWeights,
+                    onSetWeightRange = onSetWeightRange,
+                )
             }
 
             item {
@@ -678,6 +690,101 @@ private fun MachineDialog(
 }
 
 /** Destructive, rarely-used actions — set apart from everyday settings above. */
+/**
+ * The weight dial's limits, set separately for machines and free weights.
+ *
+ * Separate because they aren't the same problem: a pin stack starts at 10 lb
+ * and climbs in fives, while a barbell starts at the bar and a dumbbell rack
+ * might step in twos. One shared range is wrong for both.
+ *
+ * Changing a range never rewrites anything already logged — a stored weight
+ * outside the new limits is simply clamped the next time you open that
+ * exercise.
+ */
+@Composable
+private fun WeightRangeSection(
+    machineWeights: WeightRange,
+    freeWeightWeights: WeightRange,
+    onSetWeightRange: (Equipment, Int, Int, Int) -> Unit,
+) {
+    Column(modifier = Modifier.fillMaxWidth().padding(top = 20.dp)) {
+        Text("Weight range", style = MaterialTheme.typography.titleMedium)
+        Text(
+            "Sets the lowest and highest weight the dial offers, and how much " +
+                "each −/+ tap moves it. Machines and free weights are set " +
+                "separately. Nothing you have already logged is changed.",
+            style = MaterialTheme.typography.bodySmall,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+            modifier = Modifier.padding(top = 2.dp, bottom = 4.dp),
+        )
+        WeightRangeRow(
+            label = "Machines",
+            range = machineWeights,
+            onChange = { min, max, step ->
+                onSetWeightRange(Equipment.MACHINE, min, max, step)
+            },
+        )
+        WeightRangeRow(
+            label = "Free weights",
+            range = freeWeightWeights,
+            onChange = { min, max, step ->
+                onSetWeightRange(Equipment.FREE_WEIGHT, min, max, step)
+            },
+        )
+    }
+}
+
+@Composable
+private fun WeightRangeRow(
+    label: String,
+    range: WeightRange,
+    onChange: (Int, Int, Int) -> Unit,
+) {
+    // Each field keeps its own text while being edited so a half-typed number
+    // ("3" on the way to "30") isn't immediately clamped out from under the
+    // cursor. The committed value only moves when the text parses.
+    var minText by remember(range.min) { mutableStateOf(range.min.toString()) }
+    var maxText by remember(range.max) { mutableStateOf(range.max.toString()) }
+    var stepText by remember(range.step) { mutableStateOf(range.step.toString()) }
+
+    fun commit() {
+        val min = minText.toIntOrNull() ?: return
+        val max = maxText.toIntOrNull() ?: return
+        val step = stepText.toIntOrNull() ?: return
+        onChange(min, max, step)
+    }
+
+    Column(modifier = Modifier.padding(top = 10.dp)) {
+        Text(label, style = MaterialTheme.typography.labelLarge)
+        Row(
+            horizontalArrangement = Arrangement.spacedBy(8.dp),
+            modifier = Modifier.padding(top = 4.dp),
+        ) {
+            NumberField("Min", minText, Modifier.weight(1f)) { minText = it; commit() }
+            NumberField("Max", maxText, Modifier.weight(1f)) { maxText = it; commit() }
+            NumberField("Step", stepText, Modifier.weight(1f)) { stepText = it; commit() }
+        }
+    }
+}
+
+@Composable
+private fun NumberField(
+    label: String,
+    value: String,
+    modifier: Modifier = Modifier,
+    onValueChange: (String) -> Unit,
+) {
+    OutlinedTextField(
+        value = value,
+        // Digits only: the field feeds Int.toIntOrNull(), and a stray minus or
+        // decimal point would just silently stop it committing.
+        onValueChange = { text -> onValueChange(text.filter { it.isDigit() }.take(5)) },
+        label = { Text(label) },
+        singleLine = true,
+        modifier = modifier,
+    )
+}
+
 @Composable
 private fun ResetSection(
     onResetToday: () -> Unit,

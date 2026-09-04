@@ -157,7 +157,7 @@ class LiftRepository(private val storage: AppFileStorage) {
     /** Record a lift. Returns the new entry so the caller can kick off a sync. */
     fun logLift(machineId: String, weight: Int, difficulty: Difficulty? = null): LogEntry? {
         val machine = machine(machineId) ?: return null
-        val clamped = Weights.clamp(weight)
+        val clamped = current().weightsFor(machine.equipment).clamp(weight)
         val now = currentEpochMillis()
 
         // One entry per machine per gym day: re-logging replaces today's entry
@@ -262,6 +262,19 @@ class LiftRepository(private val storage: AppFileStorage) {
 
     fun setAllVisible(visible: Boolean) = mutateActive { profile ->
         profile.copy(machines = profile.machines.map { it.copy(visible = visible) })
+    }
+
+    /**
+     * Change the dial limits for one kind of equipment.
+     *
+     * Deliberately does NOT rewrite any already-logged weight or a machine's
+     * `lastWeight`: narrowing the range later must not retroactively edit
+     * history, and a stored weight outside the new range is simply clamped the
+     * next time that exercise is opened.
+     */
+    fun setWeightRange(equipment: Equipment, range: WeightRange) = mutateActive { profile ->
+        if (equipment == Equipment.FREE_WEIGHT) profile.copy(freeWeightWeights = range)
+        else profile.copy(machineWeights = range)
     }
 
     fun rename(machineId: String, name: String) {
@@ -745,6 +758,15 @@ private data class ProfileDto(
     val unlockedOutfits: List<String> = emptyList(),
     // JSON object keys must be strings; the domain type keeps Int coach ids.
     val equippedOutfits: Map<String, String> = emptyMap(),
+    // Weight dial limits, stored as six plain Ints rather than a nested
+    // object. A flat primitive with a default is the least that can go wrong
+    // when an older file simply doesn't have the key.
+    val machineWeightMin: Int = Weights.MIN,
+    val machineWeightMax: Int = Weights.MAX,
+    val machineWeightStep: Int = Weights.STEP,
+    val freeWeightMin: Int = Weights.MIN,
+    val freeWeightMax: Int = Weights.MAX,
+    val freeWeightStep: Int = Weights.STEP,
 )
 
 private fun Profile.toDto() = ProfileDto(
@@ -763,6 +785,12 @@ private fun Profile.toDto() = ProfileDto(
     selectedCoachId = selectedCoachId,
     unlockedOutfits = unlockedOutfits.toList(),
     equippedOutfits = equippedOutfits.mapKeys { (coachId, _) -> coachId.toString() },
+    machineWeightMin = machineWeights.min,
+    machineWeightMax = machineWeights.max,
+    machineWeightStep = machineWeights.step,
+    freeWeightMin = freeWeightWeights.min,
+    freeWeightMax = freeWeightWeights.max,
+    freeWeightStep = freeWeightWeights.step,
 )
 
 private fun ProfileDto.toProfile(key: String): Profile {
@@ -787,6 +815,10 @@ private fun ProfileDto.toProfile(key: String): Profile {
         equippedOutfits = equippedOutfits
             .mapNotNull { (k, v) -> k.toIntOrNull()?.let { it to v } }
             .toMap(),
+        // Through of() rather than the constructor: a hand-edited or
+        // corrupted file shouldn't be able to hand the slider a zero step.
+        machineWeights = WeightRange.of(machineWeightMin, machineWeightMax, machineWeightStep),
+        freeWeightWeights = WeightRange.of(freeWeightMin, freeWeightMax, freeWeightStep),
     )
 }
 

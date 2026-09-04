@@ -14,6 +14,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import com.balandman.pawgress.data.Equipment
 
 /**
  * The whole app's navigation shell, shared between Android and iOS — the
@@ -101,6 +102,9 @@ fun AppRoot(
                     onSyncNow = viewModel::syncNow,
                     onSetVisible = viewModel::setVisible,
                     onSetAllVisible = viewModel::setAllVisible,
+                    machineWeights = viewModel.weightsFor(Equipment.MACHINE),
+                    freeWeightWeights = viewModel.weightsFor(Equipment.FREE_WEIGHT),
+                    onSetWeightRange = viewModel::setWeightRange,
                     onRename = viewModel::rename,
                     onSetIcon = viewModel::setIcon,
                     onSetGroup = viewModel::setGroup,
@@ -158,6 +162,7 @@ fun AppRoot(
     if (sheetMachine != null) {
         LogSheet(
             machine = sheetMachine,
+            weights = viewModel.weightsFor(sheetMachine.equipment),
             onDismiss = { sheetMachineId = null },
             onConfirm = { weight, difficulty -> viewModel.logLift(sheetMachine.id, weight, difficulty) },
             onUndo = { viewModel.undoToday(sheetMachine.id) },

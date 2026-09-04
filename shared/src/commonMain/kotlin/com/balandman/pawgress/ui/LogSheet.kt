@@ -44,7 +44,7 @@ import androidx.compose.ui.unit.sp
 import com.balandman.pawgress.data.Difficulty
 import com.balandman.pawgress.data.GymDay
 import com.balandman.pawgress.data.Machine
-import com.balandman.pawgress.data.Weights
+import com.balandman.pawgress.data.WeightRange
 import com.balandman.pawgress.ui.theme.DifficultyColors
 import kotlinx.coroutines.launch
 import kotlin.math.roundToInt
@@ -56,6 +56,8 @@ import kotlin.math.roundToInt
 @Composable
 fun LogSheet(
     machine: Machine,
+    /** Dial limits for this machine's equipment — see [WeightRange]. */
+    weights: WeightRange,
     onDismiss: () -> Unit,
     onConfirm: (Int, Difficulty?) -> Unit,
     onUndo: () -> Unit,
@@ -65,7 +67,7 @@ fun LogSheet(
     val doneToday = GymDay.isToday(machine.lastLoggedAt)
 
     var weight by remember(machine.id) {
-        mutableIntStateOf(machine.lastWeight ?: Weights.DEFAULT)
+        mutableIntStateOf(weights.clamp(machine.lastWeight ?: weights.startingWeight))
     }
     var difficulty by remember(machine.id) {
         mutableStateOf<Difficulty?>(null)
@@ -122,8 +124,8 @@ fun LogSheet(
             ) {
                 StepButton(
                     label = "−5",
-                    enabled = weight > Weights.MIN,
-                    onClick = { weight = Weights.clamp(weight - Weights.STEP) },
+                    enabled = weight > weights.min,
+                    onClick = { weight = weights.clamp(weight - weights.step) },
                 )
 
                 Row(verticalAlignment = Alignment.Bottom) {
@@ -144,16 +146,16 @@ fun LogSheet(
 
                 StepButton(
                     label = "+5",
-                    enabled = weight < Weights.MAX,
-                    onClick = { weight = Weights.clamp(weight + Weights.STEP) },
+                    enabled = weight < weights.max,
+                    onClick = { weight = weights.clamp(weight + weights.step) },
                 )
             }
 
             Slider(
                 value = weight.toFloat(),
-                onValueChange = { weight = Weights.clamp(it.roundToInt()) },
-                valueRange = Weights.MIN.toFloat()..Weights.MAX.toFloat(),
-                steps = STEP_COUNT,
+                onValueChange = { weight = weights.clamp(it.roundToInt()) },
+                valueRange = weights.min.toFloat()..weights.max.toFloat(),
+                steps = weights.sliderSteps,
                 modifier = Modifier.padding(top = 8.dp),
             )
             Row(
@@ -161,12 +163,12 @@ fun LogSheet(
                 horizontalArrangement = Arrangement.SpaceBetween,
             ) {
                 Text(
-                    "${Weights.MIN}",
+                    "${weights.min}",
                     style = MaterialTheme.typography.labelSmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                 )
                 Text(
-                    "${Weights.MAX}",
+                    "${weights.max}",
                     style = MaterialTheme.typography.labelSmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                 )
@@ -220,7 +222,6 @@ private fun statusLine(machine: Machine, doneToday: Boolean): String {
 }
 
 /** Discrete stops the slider can land on, between the two endpoints. */
-private val STEP_COUNT = ((Weights.MAX - Weights.MIN) / Weights.STEP) - 1
 
 /**
  * Five color-coded pills, one per [Difficulty]. Tapping the one already

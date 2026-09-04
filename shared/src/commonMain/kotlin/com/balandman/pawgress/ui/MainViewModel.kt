@@ -5,12 +5,14 @@ import androidx.lifecycle.viewModelScope
 import com.balandman.pawgress.coach.CoachCatalog
 import com.balandman.pawgress.data.CoachTheme
 import com.balandman.pawgress.data.Difficulty
+import com.balandman.pawgress.data.Equipment
 import com.balandman.pawgress.data.LiftRepository
 import com.balandman.pawgress.data.LogEntry
 import com.balandman.pawgress.data.Machine
 import com.balandman.pawgress.data.MachineGroup
 import com.balandman.pawgress.data.RestoreSummary
 import com.balandman.pawgress.data.SyncState
+import com.balandman.pawgress.data.WeightRange
 import com.balandman.pawgress.sync.SyncManager
 import com.balandman.pawgress.sync.SyncResult
 import kotlinx.coroutines.Job
@@ -152,6 +154,12 @@ class MainViewModel(
     }
 
     // ----------------------------------------------------------------- machines
+
+    /** Dial limits for [equipment], for whoever is drawing the sheet or the settings. */
+    fun weightsFor(equipment: Equipment): WeightRange = repo.current().weightsFor(equipment)
+
+    fun setWeightRange(equipment: Equipment, min: Int, max: Int, step: Int) =
+        repo.setWeightRange(equipment, WeightRange.of(min, max, step))
 
     fun setVisible(machineId: String, visible: Boolean) = repo.setVisible(machineId, visible)
 

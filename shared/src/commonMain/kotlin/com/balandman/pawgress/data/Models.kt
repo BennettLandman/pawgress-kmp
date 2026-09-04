@@ -140,7 +140,16 @@ data class Profile(
     val unlockedOutfits: Set<String> = emptySet(),
     /** Which outfit (theme slug) is currently equipped per coach id, if any. */
     val equippedOutfits: Map<Int, String> = emptyMap(),
+    /** Weight dial limits for machines. */
+    val machineWeights: WeightRange = WeightRange(),
+    /** Weight dial limits for free weights, independent of [machineWeights]. */
+    val freeWeightWeights: WeightRange = WeightRange(),
 ) {
+
+    /** The dial limits that apply to [equipment]. */
+    fun weightsFor(equipment: Equipment): WeightRange =
+        if (equipment == Equipment.FREE_WEIGHT) freeWeightWeights else machineWeights
+
     companion object {
         /** The profile used before anyone has ever signed in. */
         const val LOCAL_KEY = "local"
@@ -236,6 +245,63 @@ data class RestoreSummary(
     val machinesCreated: Int,
 )
 
+/**
+ * The dial's limits for one kind of equipment: how low, how high, and how big
+ * a nudge.
+ *
+ * Machines and free weights get their own, because they are not the same
+ * problem. A pin stack starts at 10 lb and climbs in fives; a barbell starts
+ * at the bar and a dumbbell rack might step in twos. One shared range forces a
+ * compromise that is wrong for both.
+ *
+ * [Weights] still holds the defaults, so an install that has never touched
+ * this setting behaves exactly as it always did.
+ */
+data class WeightRange(
+    val min: Int = Weights.MIN,
+    val max: Int = Weights.MAX,
+    val step: Int = Weights.STEP,
+) {
+    /**
+     * Snap to this range's grid and clamp to its ends.
+     *
+     * The grid is measured from [min], not from zero — a range of 45..500 in
+     * steps of 5 should offer 45, 50, 55, not 45 then 50 with the first stop
+     * off-grid. Snapping from zero only looked right while min happened to be
+     * a multiple of step.
+     */
+    fun clamp(value: Int): Int {
+        val steps = kotlin.math.round((value - min).toFloat() / step).toInt()
+        return (min + steps * step).coerceIn(min, max)
+    }
+
+    /**
+     * What Compose's Slider wants: the number of discrete stops *between* the
+     * two ends. Never negative — a range narrower than one step would
+     * otherwise hand the slider a negative count and crash it.
+     */
+    val sliderSteps: Int get() = (((max - min) / step) - 1).coerceAtLeast(0)
+
+    /** Where the dial opens for an exercise with no history yet. */
+    val startingWeight: Int get() = clamp(Weights.DEFAULT)
+
+    companion object {
+        /**
+         * Builds a range that cannot break the UI, whatever gets typed into
+         * the settings fields. A zero step, or a max below the min, would make
+         * both [clamp] and the slider misbehave, so the bounds are enforced
+         * here rather than trusted from input.
+         */
+        fun of(min: Int, max: Int, step: Int): WeightRange {
+            val safeStep = step.coerceIn(1, 100)
+            val safeMin = min.coerceIn(0, 9_000)
+            val safeMax = max.coerceIn(safeMin + safeStep, 10_000)
+            return WeightRange(safeMin, safeMax, safeStep)
+        }
+    }
+}
+
+/** Defaults, and the range every profile starts with. */
 object Weights {
     const val MIN = 10
     const val MAX = 300
