@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>User Manual — Pawgress</title>
-<meta name="description" content="How to use Pawgress: logging lifts, reading the grid, customizing machines, trends, coaches, and Google Sheets sync.">
+<meta name="description" content="How to use Pawgress: logging lifts, reading the grid, customizing machines, trends, coaches, and backing up your data.">
 <link rel="icon" href="favicon.png" type="image/png">
 <style>
   :root {
@@ -129,7 +129,7 @@
       <li><a href="#funfacts">Fun Facts</a></li>
       <li><a href="#trends">Trends</a></li>
       <li><a href="#coaches">Pawprints and coaches</a></li>
-      <li><a href="#sync">Google Sheets sync</a></li>
+      <li><a href="#sync">Backing up your data</a></li>
       <li><a href="#resets">Resetting and starting over</a></li>
     </ol>
   </nav>
@@ -455,10 +455,35 @@
   <!-- ------------------------------------------------------------- sync -->
   <section id="sync">
     <div style="grid-column: 1 / -1;">
-      <h2>Google Sheets sync</h2>
+      <h2>Backing up your data</h2>
       <p>
-        Optional, and off until you turn it on. Pawgress works completely
-        offline; sync is a mirror of your data, never the source of truth.
+        Pawgress keeps your log on your phone and works completely offline.
+        Getting a copy off the phone works differently on the two platforms,
+        because Google sign-in isn’t built for iPhone yet:
+      </p>
+      <table>
+        <tr><th>Platform</th><th>How you get your data out</th></tr>
+        <tr>
+          <td><strong>Android</strong></td>
+          <td>Optional Google Sheets sync — a spreadsheet in your own Drive
+              that mirrors every lift, plus a one-tap
+              <strong>Restore from Google Sheet</strong>.</td>
+        </tr>
+        <tr>
+          <td><strong>iPhone</strong></td>
+          <td>The Files app — copy <code>pawgress.json</code> out to back up,
+              copy it back in to restore. No account, no network.</td>
+        </tr>
+      </table>
+      <p>
+        Settings shows whichever one applies to the phone you’re holding, so
+        you won’t be offered something that can’t work there.
+      </p>
+
+      <h3 id="sync-android">Android: Google Sheets sync</h3>
+      <p>
+        Optional, and off until you turn it on. Sync is a mirror of your data,
+        never the source of truth.
       </p>
       <p>
         In Settings, tap <strong>Sign in with Google</strong> and choose an
@@ -518,6 +543,41 @@
         else in your Drive. There is no Pawgress server — see the
         <a href="privacy.html">Privacy Policy</a>.
       </div>
+
+      <h3 id="sync-ios">iPhone: the Files app</h3>
+      <p>
+        On iPhone, Settings shows a <strong>Backup</strong> card instead of the
+        Google one. Everything you log lives in a single file,
+        <code>pawgress.json</code>, and the app publishes the folder holding it
+        to the Files app. Open <strong>Files</strong> and go to
+        <strong>Browse → On My iPhone → Pawgress</strong>.
+      </p>
+      <p>
+        <strong>To back up:</strong> copy <code>pawgress.json</code> somewhere
+        safe — iCloud Drive, email it to yourself, AirDrop it to a laptop.
+        Doing this after a session is the whole routine.
+      </p>
+      <p>
+        <strong>To restore:</strong> force-quit Pawgress first (swipe it away
+        in the app switcher), copy your saved <code>pawgress.json</code> back
+        into that folder replacing the one there, then reopen the app. The
+        force-quit matters: a running app can write its own copy back over
+        yours as it closes.
+      </p>
+      <p>
+        The file is JSON, not a spreadsheet, so it isn’t as pleasant to read
+        as the Android sheet — but it is your complete data, it is plain text,
+        and nothing but your phone and wherever you put the copy ever sees it.
+        Unlike the Android route it captures <em>everything</em>, pawprints and
+        coaches and outfits included, because it is the app’s actual save
+        file rather than a mirror of part of it.
+      </p>
+      <div class="note">
+        The iPhone route has no partial states to worry about: there is nothing
+        to sign in to, nothing queued, and nothing that can be half-synced. The
+        cost is that it is manual — nothing is backed up until you copy the
+        file out yourself.
+      </div>
     </div>
   </section>
 
@@ -540,10 +600,16 @@
         </tr>
       </table>
       <p>
-        Neither one touches your Google Sheet, your pawprints, your unlocked
-        coaches, or your outfits. If sync is on, your history is still in the
-        spreadsheet after a full reset, and
-        <strong>Restore from Google Sheet</strong> will bring it back.
+        Neither one touches your pawprints, your unlocked coaches, or your
+        outfits — and neither reaches off the phone.
+      </p>
+      <p>
+        On Android, if sync is on, your history is still in the spreadsheet
+        after a full reset and <strong>Restore from Google Sheet</strong> will
+        bring it back. On iPhone the only thing that can bring it back is a
+        copy of <code>pawgress.json</code> you made earlier, so make one before
+        a full reset rather than after — see
+        <a href="#sync-ios">iPhone: the Files app</a>.
       </p>
     </div>
   </section>

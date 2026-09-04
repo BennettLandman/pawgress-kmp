@@ -72,8 +72,12 @@
   <h2>What Pawgress stores on your device</h2>
   <p>
     Pawgress saves its state to a single file (<code>pawgress.json</code>) in
-    the app's own private storage — the app's internal storage directory on
-    Android, and the app's Documents directory on iOS. That file holds:
+    the app’s own storage — the app’s internal storage directory on Android,
+    and the app’s Documents directory on iOS. On Android no other app can read
+    it. On iPhone the app deliberately publishes that folder to the Files app,
+    under <strong>On My iPhone → Pawgress</strong>, so that <em>you</em> can
+    copy the file out as a backup and copy it back to restore; that also means
+    anyone with your unlocked phone can open it. That file holds:
   </p>
   <ul>
     <li>your list of machines, including any you renamed, hid, or added;</li>
@@ -88,8 +92,10 @@
         separate) and the ID of the spreadsheet that account's data syncs to.</li>
   </ul>
   <p>
-    This file never leaves your device except through the optional Google
-    Sheets sync described below.
+    This file never leaves your device on its own. It goes elsewhere only if
+    you send it — through the optional Google Sheets sync described below, or,
+    on iPhone, by copying it out of the Files app yourself. Neither happens
+    without you asking for it, and neither sends anything to the developer.
   </p>
 
   <h2>What Pawgress accesses in your Google account</h2>

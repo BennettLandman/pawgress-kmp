@@ -25,6 +25,28 @@ account — `IosAuthProvider` is a deliberate stub for now (see
 coach/pawprint economy, Fun Facts, Trends, hiding/renaming/adding machines —
 works fully offline against local storage on both platforms.
 
+Because of that gap, the two platforms get a user's data off the phone by
+different routes, and Settings shows only the one that applies:
+
+| | Android | iOS |
+| --- | --- | --- |
+| Backup | Google Sheets sync — a spreadsheet in the user's own Drive, a Log tab (one row per lift) and a Settings tab (grid setup + weight ranges) | The Files app — `pawgress.json` under **On My iPhone → Pawgress** |
+| Restore | Settings → "Restore from Google Sheet", merged by Entry ID | Copy the saved `pawgress.json` back into that folder and reopen the app |
+| Covers | Lifts and grid setup. Pawprints/coaches/outfits are deliberately excluded | Everything, since it *is* the save file |
+| Automatic? | Yes — every lift uploads as it's logged | No — the user copies the file out |
+| Needs | A Google account and a network | Nothing |
+
+The iOS route is two `Info.plist` keys and no code: `UIFileSharingEnabled`
+plus `LSSupportsOpeningDocumentsInPlace` publish the Documents directory
+that `IosAppFileStorage` already writes to. The second key is what makes
+restore actually work — without it the system hands apps a temporary copy,
+so a replaced file wouldn't be the one the app reads.
+
+Which card Settings renders comes from `AuthProvider.isSupported`, surfaced
+as `SyncManager.isAvailable` → `MainViewModel.syncAvailable`. When iOS
+sign-in lands, flipping that one flag to `true` is what switches the UI
+over.
+
 `PORTING_PLAN.md` has the full phase-by-phase history if you want the
 detail; this file is just the practical "how do I build this" reference.
 
@@ -93,8 +115,9 @@ has the full one-time setup steps — creating the project, wiring the
 Gradle run-script phase that builds `shared/`, and the build settings it
 needs.
 
-Signing in with Google won't do anything yet on iOS (see Status above);
-everything else should work.
+Signing in with Google isn't offered on iOS yet (see Status above) —
+Settings shows the Files-app backup card there instead. Everything else
+should work.
 
 ## Toolchain versions
 
@@ -127,11 +150,11 @@ just don't present the result as the official app.
 
 ## Known caveats
 
-- **`IosAuthProvider` is a stub.** Tapping "Connect Google Account" on iOS
-  currently just fails with "No account chosen." Real Google sign-in on iOS
-  needs an OAuth Authorization Code + PKCE flow against
-  `ASWebAuthenticationSession`, which is the next piece of work now that
-  the app is confirmed running.
+- **`IosAuthProvider` is a stub.** It reports `isSupported = false`, so
+  Settings no longer offers a sign-in button on iOS at all — it shows the
+  Files-app backup instructions instead. Real Google sign-in on iOS needs an
+  OAuth Authorization Code + PKCE flow against `ASWebAuthenticationSession`,
+  which is the next piece of work now that the app is confirmed running.
 - **No network access to Maven Central or Google's Maven repo was
   available while most of this port was written and reviewed**, so a lot
   of it was checked structurally (static analysis, careful reading against

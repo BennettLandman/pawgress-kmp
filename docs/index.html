@@ -135,7 +135,7 @@
   </ul>
 
   <div class="card">
-    <h2>Optional Google Sheets sync</h2>
+    <h2>Your data, and getting a copy of it</h2>
     <p>
       Pawgress works completely offline and is fully usable without signing in
       to anything. If you choose to connect a Google account, the app creates a
@@ -144,6 +144,15 @@
       a plain, portable format you can open, chart, or export any time. A
       second tab backs up how your grid is set up, so a reinstall restores your
       exercises named, hidden and ordered the way you had them.
+    </p>
+    <p>
+      Google sign-in isn’t built for iPhone yet, so there the backup route is
+      the Files app instead: Pawgress publishes its folder under
+      <strong>On My iPhone → Pawgress</strong>, and the single
+      <code>pawgress.json</code> file inside it is your whole log. Copy it out
+      to back up, copy it back in to restore — no account and no network
+      involved. Settings shows whichever route applies to the phone you’re
+      holding.
     </p>
     <p>
       The app uses Google's <code>drive.file</code> scope, which grants access
@@ -161,8 +170,8 @@
       The <a href="manual.html">user manual</a> walks through the whole app:
       logging a lift, what the colored dots mean, the 4am gym day, setting the
       weight range, setting up
-      your own machines, the Trends charts, and how the optional Google Sheets
-      sync works.
+      your own machines, the Trends charts, and how to back up your data on
+      each platform.
     </p>
   </div>
 
@@ -170,7 +179,9 @@
   <p>
     Pawgress is built with Kotlin Multiplatform and runs on both Android and
     iOS from one shared codebase. The Android version is preparing for release
-    on Google Play; the iOS version is in active development. The source is
+    on Google Play; the iOS version is in active development — it runs, but
+    Google sign-in there isn’t built yet, so iPhone backups go through the
+    Files app. The source is
     public at
     <a href="https://github.com/BennettLandman/pawgress-kmp">github.com/BennettLandman/pawgress-kmp</a>.
   </p>

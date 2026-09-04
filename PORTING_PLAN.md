@@ -770,6 +770,29 @@ nothing to recover from. That happened once. `AppFileStorage` now has
 unparseable file aside before seeding. The root cause of that parse failure was
 never identified.
 
+**Backup on iOS, without waiting for sign-in.** With no working Google
+sign-in there, iPhone users had no way to get their data off the phone — and
+worse, `SettingsScreen` is common code, so they were shown a Google card and
+a "Sign in with Google" button that could only return "not implemented".
+
+The route costs no code: `UIFileSharingEnabled` and
+`LSSupportsOpeningDocumentsInPlace` in `Info.plist` publish the Documents
+directory `IosAppFileStorage` already writes `pawgress.json` into, so it
+appears in the Files app under "On My iPhone > Pawgress". Copy the file out
+to back up, drop it back in and reopen to restore. The second key is the one
+that matters for restore: without it iOS hands apps a temporary copy, and a
+replaced file would not be the one the app reads. Unlike the sheet this is
+the actual save file, so it carries pawprints, coaches and outfits too.
+
+The UI half is a capability flag rather than a platform check:
+`AuthProvider.isSupported` (true on Android, false on iOS) →
+`SyncManager.isAvailable` → `MainViewModel.syncAvailable`, which
+`SettingsScreen` takes as a parameter and uses to choose between `GoogleCard`
+and a new `FilesBackupCard`. `fullReset`'s toast stops promising that "your
+Google Sheet history is untouched" where no sheet can exist. When iOS
+sign-in lands, flipping the flag switches the UI over — no `expect`/`actual`,
+and nothing in `commonMain` asks what platform it is on.
+
 **Still open.** `IosAuthProvider` remains a stub, so Google sign-in does not
 work on iOS. Implementing it needs an OAuth Authorization Code + PKCE flow
 (PKCE needs a real SHA-256, which has no pure-Kotlin-common implementation)
