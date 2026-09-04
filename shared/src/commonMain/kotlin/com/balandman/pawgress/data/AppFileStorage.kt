@@ -19,4 +19,16 @@ interface AppFileStorage {
      * to a temp location first and rename/move it over the real file.
      */
     fun writeAtomic(content: String)
+
+    /**
+     * Keeps a copy of [content] beside the main file when it could not be
+     * parsed, and returns where it went (or null if even that failed).
+     *
+     * Exists because the alternative is silent data loss: [LiftRepository]
+     * falls back to a blank catalogue when the saved state is unreadable, and
+     * the very next save then overwrites the original. One unlucky parse
+     * failure would otherwise destroy a user's entire history with no trace.
+     * A quarantined copy is recoverable by hand.
+     */
+    fun quarantineUnreadable(content: String): String?
 }

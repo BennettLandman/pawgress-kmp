@@ -13,6 +13,14 @@ class AndroidAppFileStorage(
 
     override fun read(): String? = if (file.exists()) file.readText() else null
 
+    override fun quarantineUnreadable(content: String): String? = try {
+        val copy = File(file.parentFile, "${file.name}.unreadable-${'$'}{System.currentTimeMillis()}")
+        copy.writeText(content)
+        copy.absolutePath
+    } catch (e: Exception) {
+        null
+    }
+
     override fun writeAtomic(content: String) {
         val tmp = File(file.parentFile, "${file.name}.tmp")
         tmp.writeText(content)

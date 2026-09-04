@@ -103,10 +103,11 @@ fun SettingsScreen(
     var confirmingResetToday by remember { mutableStateOf(false) }
     var confirmingFullReset by remember { mutableStateOf(false) }
     var confirmingRestore by remember { mutableStateOf(false) }
-    // null = no filter. Machines and free weights are two long lists; picking
-    // from them is much easier apart than together, which is the whole point
-    // of this control.
-    var equipmentFilter by remember { mutableStateOf<Equipment?>(null) }
+    // Which of the two catalogues the list below is showing. The "Machines" /
+    // "Free weights" header is the switch — a filter-chip row sat below the
+    // section blurb and proved far too easy to scroll past without ever
+    // realising free weights existed.
+    var showing by remember { mutableStateOf(Equipment.MACHINE) }
 
     Column(Modifier.fillMaxSize()) {
         TopAppBar(
@@ -144,7 +145,34 @@ fun SettingsScreen(
                     verticalAlignment = Alignment.CenterVertically,
                     horizontalArrangement = Arrangement.SpaceBetween,
                 ) {
-                    Text("Machines", style = MaterialTheme.typography.titleMedium)
+                    val other =
+                        if (showing == Equipment.MACHINE) Equipment.FREE_WEIGHT
+                        else Equipment.MACHINE
+                    Column(
+                        modifier = Modifier
+                            .clip(RoundedCornerShape(10.dp))
+                            .clickable { showing = other }
+                            .padding(horizontal = 8.dp, vertical = 4.dp),
+                    ) {
+                        Row(verticalAlignment = Alignment.CenterVertically) {
+                            Text(
+                                if (showing == Equipment.FREE_WEIGHT) "Free weights" else "Machines",
+                                style = MaterialTheme.typography.titleMedium,
+                            )
+                            Spacer(Modifier.size(6.dp))
+                            Text(
+                                "\u21c4",
+                                style = MaterialTheme.typography.titleMedium,
+                                color = MaterialTheme.colorScheme.primary,
+                            )
+                        }
+                        Text(
+                            if (showing == Equipment.FREE_WEIGHT) "Tap to show machines"
+                            else "Tap to show free weights",
+                            style = MaterialTheme.typography.labelSmall,
+                            color = MaterialTheme.colorScheme.primary,
+                        )
+                    }
                     Row {
                         TextButton(onClick = { onSetAllVisible(false) }) { Text("Hide all") }
                         TextButton(onClick = { onSetAllVisible(true) }) { Text("Show all") }
@@ -155,31 +183,6 @@ fun SettingsScreen(
                     style = MaterialTheme.typography.bodySmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                 )
-                Row(
-                    horizontalArrangement = Arrangement.spacedBy(8.dp),
-                    modifier = Modifier.padding(top = 10.dp),
-                ) {
-                    FilterChip(
-                        selected = equipmentFilter == null,
-                        onClick = { equipmentFilter = null },
-                        label = { Text("All") },
-                    )
-                    Equipment.entries.forEach { equipment ->
-                        FilterChip(
-                            selected = equipmentFilter == equipment,
-                            onClick = {
-                                equipmentFilter =
-                                    if (equipmentFilter == equipment) null else equipment
-                            },
-                            label = {
-                                Text(
-                                    if (equipment == Equipment.MACHINE) "Machines"
-                                    else "Free weights"
-                                )
-                            },
-                        )
-                    }
-                }
                 Spacer(Modifier.height(4.dp))
                 OutlinedButton(
                     onClick = { adding = true },
@@ -191,12 +194,9 @@ fun SettingsScreen(
                 }
             }
 
-            // "Show all"/"Hide all" above stay global on purpose — they act on
-            // every machine, not just the filtered view. The filter is a lens on
-            // the list, not a selection.
-            val filtered = machines.filter {
-                equipmentFilter == null || it.equipment == equipmentFilter
-            }
+            // "Show all"/"Hide all" stay global on purpose — they act on every
+            // exercise, not only the half currently on screen.
+            val filtered = machines.filter { it.equipment == showing }
 
             MachineGroup.entries.forEach { group ->
                 val inGroup = filtered.filter { it.group == group }.sortedBy { it.sortOrder }

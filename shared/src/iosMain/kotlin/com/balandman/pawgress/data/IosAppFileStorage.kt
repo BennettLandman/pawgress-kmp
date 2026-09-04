@@ -2,6 +2,8 @@
 
 package com.balandman.pawgress.data
 
+import platform.Foundation.NSDate
+import platform.Foundation.timeIntervalSince1970
 import platform.Foundation.NSDocumentDirectory
 import platform.Foundation.NSFileManager
 import platform.Foundation.NSSearchPathForDirectoriesInDomains
@@ -41,6 +43,20 @@ class IosAppFileStorage(fileName: String = "pawgress.json") : AppFileStorage {
         ) as String?
     } catch (e: Throwable) {
         null
+    }
+
+    override fun quarantineUnreadable(content: String): String? {
+        // Mirrors AndroidAppFileStorage: a copy beside the real file, stamped
+        // so repeat failures don't overwrite each other. Best-effort by
+        // design -- a failure here must never stop the app from starting.
+        val copy = "$path.unreadable-${'$'}{(NSDate().timeIntervalSince1970 * 1000.0).toLong()}"
+        val wrote = (content as platform.Foundation.NSString).writeToFile(
+            copy,
+            atomically = true,
+            encoding = NSUTF8StringEncoding,
+            error = null,
+        )
+        return if (wrote) copy else null
     }
 
     override fun writeAtomic(content: String) {

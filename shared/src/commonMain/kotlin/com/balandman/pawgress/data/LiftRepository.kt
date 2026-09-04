@@ -594,7 +594,19 @@ class LiftRepository(private val storage: AppFileStorage) {
             _profiles.value = loaded
             _activeKey.value = if (rootDto.activeKey in loaded.keys) rootDto.activeKey else loaded.keys.first()
         } catch (e: Exception) {
-            println("LiftRepository: saved state was unreadable; starting from the default catalog: ${e.message}")
+            // Falling back to a blank catalogue means the next persist()
+            // overwrites the file we just failed to read -- so keep a copy
+            // FIRST. Without this, one bad parse silently destroys a user's
+            // entire history with nothing left to recover from.
+            val kept = try {
+                storage.quarantineUnreadable(text)
+            } catch (inner: Exception) {
+                null
+            }
+            println(
+                "LiftRepository: saved state was unreadable; starting from the default catalog: " +
+                    "${e.message} (a copy of the unreadable file was kept at ${kept ?: "<could not be saved>"})"
+            )
             seedLocal()
         }
     }
