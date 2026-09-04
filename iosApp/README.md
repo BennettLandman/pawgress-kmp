@@ -1,12 +1,20 @@
 # iOS app shell
 
-This folder deliberately does **not** contain a checked-in `.xcodeproj` yet.
-Xcode project files are fragile to hand-write outside of Xcode itself, so the
-one-time project creation is a manual step — everything else (the actual
-Kotlin logic, and now the actual UI) already lives in `shared/` and needs no
-changes for iOS.
+**The Xcode project now exists and is checked in**, at
+`iosApp/iosApp/iosApp.xcodeproj` — one folder deeper than you might expect,
+because Xcode nests a new project inside a folder named after the product. To
+build the app, open that and press ⌘R; see the root [README](../README.md).
 
-## One-time setup (do this once, in Xcode, on your Mac)
+The app builds, installs and runs on the Simulator, rendering the same shared
+Compose UI as Android. Google sign-in is the one thing that does not work yet
+(`IosAuthProvider` is a deliberate stub — see `PORTING_PLAN.md`).
+
+Everything below is the **one-time setup that was already done**. It is kept
+only for the case where the project has to be recreated from scratch — a clean
+checkout that excludes it, or an Xcode version whose project format needs
+regenerating. In normal use you never need any of it.
+
+## One-time setup (only if recreating the project from scratch)
 
 1. Open Xcode → File → New → Project → iOS → **App**.
 2. Product Name: `iosApp`. Interface: **SwiftUI**. Language: **Swift**.

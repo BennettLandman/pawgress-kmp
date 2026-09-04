@@ -81,6 +81,8 @@
         difficulty rating you can attach to a set;</li>
     <li>app state such as pawprint balance, unlocked coaches, and equipped
         outfits;</li>
+    <li>your settings, including the weight-range limits for machines and for
+        free weights;</li>
     <li>if you sign in, the email address of the signed-in Google account
         (used as the key that keeps each account's machines and history
         separate) and the ID of the spreadsheet that account's data syncs to.</li>
@@ -119,8 +121,26 @@
 
   <h2>What gets written to the spreadsheet</h2>
   <p>
-    One row per logged lift, with these columns: Date, Time, Exercise, Weight
-    (lb), Entry ID, Area, and Difficulty. Nothing else about you is written.
+    The spreadsheet has two tabs.
+  </p>
+  <ul>
+    <li>
+      <strong>Log</strong> — one row per logged lift, with these columns: Date,
+      Time, Exercise, Weight (lb), Entry ID, Area, and Difficulty.
+    </li>
+    <li>
+      <strong>Settings</strong> — how your grid is set up, so a reinstall can
+      restore it: each exercise's name, body area, whether it is a machine or a
+      free weight, whether it is shown or hidden, its icon, its position in the
+      grid, and your weight-range limits (lowest, highest, and step size).
+    </li>
+  </ul>
+  <p>
+    Nothing else about you is written. In particular the app's pawprints,
+    unlocked coaches and outfits are deliberately not sent to the spreadsheet —
+    they stay on your device.
+  </p>
+  <p>
     The spreadsheet lives in your Drive, under your control — you can open,
     edit, export, share, or delete it at any time, exactly like any other file
     you own.

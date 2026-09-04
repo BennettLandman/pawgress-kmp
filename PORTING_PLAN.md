@@ -724,3 +724,55 @@ Xcode's file-system-synchronized groups. Not yet rebuilt/reinstalled to
 confirm the home-screen icon now shows correctly. `IosAuthProvider` (real
 Google OAuth on iOS) remains the deliberate stub described above -- now
 that the app actually runs, it's the next real gap to close.
+
+---
+
+## Post-port work (2026-09-04)
+
+The port itself is done; this section records what has been built on top of it,
+since the phases above describe getting to parity rather than what came after.
+
+**Free weights.** The catalogue is now 39 machines and 33 free-weight
+exercises. A new `Equipment` enum (`MACHINE` / `FREE_WEIGHT`) on `Machine`
+distinguishes them, deliberately independent of `MachineGroup` — a barbell
+squat and a leg press are both LOWER but different equipment. All the
+free-weight seeds ship hidden, so they reach existing installs through
+`mergeNewSeeds()` without rearranging anyone's grid. In Settings the
+"Machines" heading is itself the switch between the two lists; a filter-chip
+row was tried first and proved too easy to scroll past.
+
+**Per-equipment weight range.** `WeightRange` (min/max/step) is stored per
+profile, once for machines and once for free weights, both defaulting to the
+previous fixed 10/300/5. The grid is measured from `min` rather than zero so a
+range starting at 45 doesn't put its first stop off-grid, and `sliderSteps`
+floors at zero so a too-narrow range can't hand Compose's `Slider` a negative
+count. `WeightRange.of()` sanitises both settings input and values read back
+from disk.
+
+**Settings backed up to the spreadsheet.** A second tab, "Settings", carries
+the grid configuration and the weight ranges; restore merges it back before
+the log rows, so a machine the sheet knows about exists with its real name and
+icon before log entries referencing it are merged. Additive and idempotent
+like the log restore — it never deletes. Pawprints, coaches and outfits stay
+local by choice.
+
+**Sync fires per entry.** The old four-second debounce lost data three ways:
+the wait ran in `viewModelScope` so closing the app cancelled it, each new
+lift cancelled the previous timer, and `runSync` dropped a request outright if
+one was already in flight. Now every logged lift uploads immediately, and a
+lift arriving mid-upload sets a flag that makes the loop run again.
+
+**A data-loss incident worth remembering.** `LiftRepository.load()` catches any
+parse failure and falls back to a blank catalogue — and the next `persist()`
+then overwrites the file it just failed to read, destroying the history with
+nothing to recover from. That happened once. `AppFileStorage` now has
+`quarantineUnreadable()`, implemented on both platforms, which copies the
+unparseable file aside before seeding. The root cause of that parse failure was
+never identified.
+
+**Still open.** `IosAuthProvider` remains a stub, so Google sign-in does not
+work on iOS. Implementing it needs an OAuth Authorization Code + PKCE flow
+(PKCE needs a real SHA-256, which has no pure-Kotlin-common implementation)
+plus `ASWebAuthenticationSession` interop, and an iOS OAuth client of its own.
+The original reason to defer — no Simulator to check against — no longer
+applies.

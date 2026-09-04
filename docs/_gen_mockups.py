@@ -442,27 +442,42 @@ def screen_settings():
     b += [card(16, 268, 358, 56),
           t(32, 302, "Restore from Google Sheet", 13, C["on"], weight="500"),
           pth("M348,296 L354,302 L348,308", stroke=C["muted"], sw=1.6)]
-    # machines
-    b += [t(20, 356, "Machines", 13, C["on"], weight="600"),
-          t(300, 356, "Show all", 11.5, C["primary"], "end"),
-          t(358, 356, "Hide all", 11.5, C["primary"], "end")]
+
+    # the header is the machines/free-weights switch
+    b += [rr(20, 340, 176, 44, 10, C["surfaceV"]),
+          t(32, 360, "Machines", 14, C["on"], weight="600"),
+          t(104, 360, "\u21c4", 14, C["primary"], weight="600"),
+          t(32, 376, "Tap to show free weights", 9.5, C["primary"]),
+          t(300, 362, "Show all", 11, C["primary"], "end"),
+          t(358, 362, "Hide all", 11, C["primary"], "end")]
+
     rows = [("Chest Press", "upper", True), ("Lat Pulldown", "upper", True),
-            ("Leg Press", "lower", True), ("Ab Crunch", "core", False)]
-    y = 372
+            ("Leg Press", "lower", True)]
+    y = 394
     for name, grp, shown in rows:
-        b += [card(16, y, 358, 52), circ(38, y + 26, 4.4, GROUP[grp]),
-              t(54, y + 31, name, 12.5, C["on"] if shown else C["muted"])]
-        b += [rr(320, y + 16, 36, 20, 10,
-                 C["primary"] if shown else C["outlineV"]),
-              circ(346 if shown else 330, y + 26, 8, C["white"])]
-        y += 60
-    b += [rr(16, y + 4, 358, 46, 14, "none", C["outline"], 1.3),
-          t(W / 2, y + 33, "+  Add a machine", 13, C["on"], "middle", "500")]
-    y += 66
-    b += [rr(16, y + 4, 172, 44, 14, "none", C["outline"], 1.2),
-          t(102, y + 32, "Reset today", 12.5, C["on"], "middle"),
-          rr(202, y + 4, 172, 44, 14, "none", "#A03A2C", 1.2),
-          t(288, y + 32, "Full reset", 12.5, "#A03A2C", "middle")]
+        b += [card(16, y, 358, 48), circ(38, y + 24, 4.4, GROUP[grp]),
+              t(54, y + 29, name, 12.5, C["on"] if shown else C["muted"])]
+        b += [rr(322, y + 14, 34, 20, 10, C["primary"] if shown else C["outlineV"]),
+              circ(346 if shown else 332, y + 24, 8, C["white"])]
+        y += 56
+    b += [rr(16, y, 358, 42, 14, "none", C["outline"], 1.3),
+          t(W / 2, y + 27, "+  Add a machine", 12.5, C["on"], "middle", "500")]
+    y += 58
+
+    # weight range
+    b += [t(32, y + 18, "Weight range", 13, C["on"], weight="600"),
+          t(32, y + 34, "Lowest, highest and how much each tap moves.",
+            9.5, C["muted"])]
+    y += 44
+    for label, vals in [("Machines", ("10", "300", "5")), ("Free weights", ("45", "500", "5"))]:
+        b.append(t(32, y + 14, label, 10.5, C["on"], weight="600"))
+        fx = 32
+        for cap, val in zip(("Min", "Max", "Step"), vals):
+            b += [rr(fx, y + 22, 104, 38, 8, "none", C["outline"], 1.1),
+                  t(fx + 8, y + 32, cap, 8, C["muted"]),
+                  t(fx + 8, y + 50, val, 13, C["on"])]
+            fx += 110
+        y += 68
     return frame("".join(b), "Settings screen")
 
 

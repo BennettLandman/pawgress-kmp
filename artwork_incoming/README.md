@@ -9,6 +9,19 @@ app actually ships are far smaller (the whole processed set is about 11 MB),
 so this folder exists to make the processed art reproducible, not because the
 app reads from it. Nothing here is referenced at runtime.
 
+## Subfolders
+
+Loose files in this folder are the original machine artwork and the mascots.
+`pawgress_free_weight_icons/` holds the free-weight exercise art, which follows
+the same rules: one PNG per exercise, named for the exercise, converted to
+`art_<name>.webp`. Its `manifest.txt` lists what was generated in that batch.
+
+Where a free-weight exercise shares a name with an existing machine, give the
+file a distinguishing name (`dumbbell_lateral_raise.png`, not
+`lateral_raise.png`) — otherwise the conversion collides with the machine's
+artwork. The conversion step refuses to overwrite an existing file, so a
+collision fails loudly rather than silently replacing the machine's icon.
+
 ## Naming convention
 
 The processing step derives resource names from these filenames, so the

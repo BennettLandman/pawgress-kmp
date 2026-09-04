@@ -125,6 +125,7 @@
       <li><a href="#dots">Reading the colored dots</a></li>
       <li><a href="#gymday">The gym day (4am reset)</a></li>
       <li><a href="#machines">Customizing your machines</a></li>
+      <li><a href="#weights">Setting the weight range</a></li>
       <li><a href="#funfacts">Fun Facts</a></li>
       <li><a href="#trends">Trends</a></li>
       <li><a href="#coaches">Pawprints and coaches</a></li>
@@ -275,12 +276,16 @@
         actual routine.
       </p>
       <p>
-        Because that's two long lists, the <strong>All / Machines / Free
-        weights</strong> filter at the top of the machine list narrows it to one
-        kind at a time, which makes finding a given exercise much quicker. It's
-        a lens on the list only — <strong>Show all</strong> and
-        <strong>Hide all</strong> still act on everything, not just what the
-        filter is currently showing.
+        Those are two long lists, so the list shows one kind at a time. The
+        heading itself is the switch: it reads <strong>Machines&nbsp;⇄</strong>
+        or <strong>Free weights&nbsp;⇄</strong> depending on which you're
+        looking at, with a "Tap to show…" line underneath naming the other.
+        Tap it to swap.
+      </p>
+      <p>
+        It changes only what the list displays. <strong>Show all</strong> and
+        <strong>Hide all</strong> still act on every exercise, not just the
+        half currently on screen.
       </p>
       <ul>
         <li><strong>Hide what you don't use.</strong> The toggle beside each
@@ -301,6 +306,42 @@
         the list are the fast way to start from everything or from nothing and
         work toward your circuit.
       </p>
+    </div>
+  </section>
+
+  <!-- ---------------------------------------------------------- weights -->
+  <section id="weights">
+    <div style="grid-column: 1 / -1;">
+      <h2>Setting the weight range</h2>
+      <p>
+        The logging dial runs 10–300 lb in 5 lb steps out of the box. Under
+        <strong>Weight range</strong> in Settings you can change the lowest and
+        highest weight it offers, and how far each −/+ tap moves it.
+      </p>
+      <p>
+        Machines and free weights are set <strong>separately</strong>, because
+        they aren't the same problem. A pin stack starts around 10 lb and
+        climbs in fives; a barbell starts at the weight of the bar and a
+        dumbbell rack might step in twos. One shared range would be wrong for
+        both.
+      </p>
+      <table>
+        <tr><th>Field</th><th>What it does</th></tr>
+        <tr><td><strong>Min</strong></td><td>The lowest weight the dial will go to.</td></tr>
+        <tr><td><strong>Max</strong></td><td>The highest.</td></tr>
+        <tr><td><strong>Step</strong></td><td>How much one −/+ tap changes the weight. The slider snaps to the same steps.</td></tr>
+      </table>
+      <p>
+        Steps are counted from your minimum, not from zero — so a range
+        starting at 45 in steps of 5 gives you 45, 50, 55, rather than an
+        awkward first stop.
+      </p>
+      <div class="note">
+        Changing a range never edits anything you've already logged. If you
+        narrow the range after recording a heavier lift, that entry keeps its
+        weight; the dial simply won't offer it next time unless you widen the
+        range again.
+      </div>
     </div>
   </section>
 
@@ -425,18 +466,42 @@
         in your own Google Drive and adds a row per lift:
       </p>
       <p><code>Date | Time | Exercise | Weight (lb) | Entry ID | Area | Difficulty</code></p>
+      <h3>The Settings tab</h3>
       <p>
-        Lifts logged offline queue up and go on the next sync.
-        <strong>Sync now</strong> pushes immediately, and
+        The same spreadsheet carries a second tab, <strong>Settings</strong>,
+        holding how your grid is set up: each exercise's name, body area,
+        whether it's a machine or a free weight, shown or hidden, its icon and
+        its position, plus your weight-range limits. It's rewritten whenever
+        you sync, so it always reflects the device.
+      </p>
+      <p>
+        It's a plain, readable table you can edit by hand if you want to —
+        renaming a batch of machines in the sheet is quicker than tapping
+        through them. Your pawprints, coaches and outfits are deliberately
+        <em>not</em> in it: those stay on the device, so nobody can hand
+        themselves a bigger balance by typing in a spreadsheet.
+      </p>
+      <p>
+        Every lift uploads the moment you log it, so closing the app straight
+        after a set can't strand it. Anything logged with no signal queues up
+        and goes on the next successful sync — Settings shows how many are
+        waiting. <strong>Sync now</strong> pushes on demand, and
         <strong>Open sheet</strong> jumps straight to the spreadsheet.
       </p>
       <h3>Restore from Google Sheet</h3>
       <p>
         Reads the whole sheet back and merges in anything missing locally —
-        useful after a reinstall or on a new phone. It matches by Entry ID, so
-        running it twice does nothing the second time. It only ever adds: it
-        never deletes or overwrites what's already on your device, and it never
-        retroactively awards pawprints.
+        useful after a reinstall or on a new phone. It restores your setup from
+        the Settings tab as well as your lifts from the Log tab, so a fresh
+        install comes back with your machines named, hidden and ordered the way
+        you had them.
+      </p>
+      <p>
+        It matches lifts by Entry ID, so running it twice does nothing the
+        second time. It only ever adds: an exercise the sheet doesn't know
+        about is left alone rather than deleted, nothing already on your device
+        is overwritten by an older sheet, and it never retroactively awards
+        pawprints.
       </p>
       <h3>Each account gets its own everything</h3>
       <p>
