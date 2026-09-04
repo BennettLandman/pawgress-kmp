@@ -38,12 +38,20 @@ fun LocalDate.withDayOfYear(dayOfYear: Int): LocalDate = this.minusDays(this.day
 fun LocalDate.lengthOfMonth(): Int {
     val firstOfThisMonth = this.withDayOfMonth(1)
     val firstOfNextMonth = firstOfThisMonth.plusMonths(1)
-    // `.toInt()` here rather than a bare subtraction: kotlinx-datetime's
-    // `toEpochDays()` returned Int as of the 0.6.1 version this project
-    // declares, but the version actually resolved for the iOS compile
-    // returned Long instead (first surfaced as a real "expected Int, actual
-    // Long" compile error in Phase 6, once Kotlin/Native ever compiled this
-    // file for the first time) -- a month is always well under Int.MAX_VALUE
-    // days, so the narrowing is safe, and it compiles under either return type.
+    // DO NOT "clean up" the `.toInt()` below, however redundant it looks.
+    //
+    // kotlinx-datetime's `toEpochDays()` returns Int in the version resolved
+    // for the Android target but Long in the one resolved for iOS -- the same
+    // common source file, two different resolutions. Without the conversion,
+    // iOS fails outright with "expected Int, actual Long" (which is exactly
+    // how this was discovered, the first time Kotlin/Native ever compiled this
+    // file, in Phase 6). With it, both targets compile.
+    //
+    // The cost is that the Android build now emits
+    //   w: DateCompat.kt:NN Redundant call of conversion method
+    // on every build. That warning is correct *for Android alone* and wrong
+    // for the project: deleting the call to silence it breaks the iOS build.
+    // A month is always far under Int.MAX_VALUE days, so the narrowing is
+    // safe either way.
     return (firstOfNextMonth.toEpochDays() - firstOfThisMonth.toEpochDays()).toInt()
 }
