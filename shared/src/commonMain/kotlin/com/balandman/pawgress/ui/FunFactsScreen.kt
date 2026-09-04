@@ -54,6 +54,7 @@ import androidx.compose.ui.unit.sp
 import com.balandman.pawgress.coach.CoachCatalog
 import com.balandman.pawgress.coach.CoachVoice
 import com.balandman.pawgress.coach.MotivationStats
+import com.balandman.pawgress.coach.PawprintStats
 import com.balandman.pawgress.data.GymDay
 import com.balandman.pawgress.data.LogEntry
 import com.balandman.pawgress.data.minusDays
@@ -75,6 +76,12 @@ fun FunFactsScreen(
     log: List<LogEntry>,
     selectedCoachId: Int,
     equippedOutfits: Map<Int, String>,
+    /**
+     * The profile's lifetime pawprint counter. Deliberately NOT the spendable
+     * balance: this one never goes down when pawprints are spent on a coach or
+     * an outfit, so it measures workout activity rather than purchasing power.
+     */
+    pawprintsEarnedTotal: Int,
     onBack: () -> Unit,
 ) {
     var range by remember { mutableStateOf(FactsRange.TODAY) }
@@ -93,6 +100,12 @@ fun FunFactsScreen(
     val coachName = remember(selectedCoachId) { CoachCatalog.byId(selectedCoachId)?.name }
     val saying = remember(log, selectedCoachId) {
         CoachVoice.randomSaying(selectedCoachId, MotivationStats.from(log, today))
+    }
+    // Pawprint stats are lifetime by nature, so they read the whole log rather
+    // than `filtered` -- the range chips above deliberately do not apply to
+    // them, and both cards say "all time" so that isn't mistaken for a bug.
+    val pawprints = remember(log, pawprintsEarnedTotal) {
+        PawprintStats.from(log, pawprintsEarnedTotal)
     }
 
     Column(Modifier.fillMaxSize()) {
@@ -144,7 +157,18 @@ fun FunFactsScreen(
             }
 
             item {
+                LifetimePawprintsCard(pawprints)
+            }
+
+            item {
                 StreakCard(streak)
+            }
+
+            // Where the pawprints came from. Sits above the range-filtered
+            // facts because it answers a different question -- all of history,
+            // not the selected window.
+            items(pawprints.funFacts()) { fact ->
+                FactCard(headline = fact.first, detail = fact.second)
             }
 
             if (filtered.isEmpty()) {
@@ -276,6 +300,59 @@ private class SpeechBubbleShape(
             close()
         }
         return Outline.Generic(path)
+    }
+}
+
+/**
+ * The headline "you have earned this many pawprints, ever" card.
+ *
+ * A plain, large number rather than a progress meter: a meter needs a target,
+ * and the honest target here (the next coach) depends on the *spendable*
+ * balance, which is a different number that goes down when you spend. Putting
+ * the two in one bar would make a lifetime total look like it could shrink.
+ */
+@Composable
+private fun LifetimePawprintsCard(stats: PawprintStats) {
+    Card(
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.secondaryContainer),
+        modifier = Modifier.fillMaxWidth(),
+    ) {
+        Row(
+            modifier = Modifier.padding(16.dp).fillMaxWidth(),
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
+            Text("🐾", fontSize = 34.sp, modifier = Modifier.padding(end = 14.dp))
+            Column {
+                Text(
+                    text = "${stats.lifetimeEarned}",
+                    style = MaterialTheme.typography.headlineMedium,
+                    fontWeight = FontWeight.SemiBold,
+                    color = MaterialTheme.colorScheme.onSecondaryContainer,
+                )
+                Text(
+                    text = "Pawprints earned, all time",
+                    style = MaterialTheme.typography.titleSmall,
+                    fontWeight = FontWeight.Medium,
+                    color = MaterialTheme.colorScheme.onSecondaryContainer,
+                )
+                Spacer(Modifier.height(2.dp))
+                Text(
+                    text = "One per exercise, per gym day. Spending them never " +
+                        "lowers this number.",
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSecondaryContainer,
+                )
+                if (stats.logIsPartial) {
+                    Spacer(Modifier.height(4.dp))
+                    Text(
+                        text = "Your current log covers ${stats.fromCurrentLog} of them, " +
+                            "so the breakdown below starts from there.",
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSecondaryContainer,
+                    )
+                }
+            }
+        }
     }
 }
 

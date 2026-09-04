@@ -44,6 +44,16 @@ object CoachCatalog {
         Coach(18, "Burmese", "Coach Bo", "Loyal best friend — \"we're in this together\"", 90),
         Coach(19, "Tonkinese", "Coach Tonka", "Playful all-rounder — upbeat challenges", 95),
         Coach(20, "Turkish Angora", "Coach Sultan", "Graceful perfectionist — technique over ego", 100),
+        // Coaches 21 and 22 arrived after the original roster of twenty and are
+        // deliberately priced as a tier above it (125/150) rather than
+        // continuing the +5 ladder, so they read as something to work toward
+        // rather than two more rungs.
+        Coach(21, "Domestic Shorthair", "Coach Yip Yip", "Bouncing livewire — scattered until he locks on, then all in", 125),
+        // Working name, kept short on purpose: the full version is
+        // "Tiny One Fuzzy Pants Catnip Everpe", which is four times the length
+        // of any other name here and wraps to three lines on a coach card.
+        // Changing the display name is this one string.
+        Coach(22, "Domestic Longhair", "Tiny1 Fuzzy Pants", "Ancient and unimpressed — but her praise means everything", 150),
     )
 
     fun byId(id: Int): Coach? = ALL.firstOrNull { it.id == id }

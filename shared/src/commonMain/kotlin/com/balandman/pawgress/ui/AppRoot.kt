@@ -61,6 +61,9 @@ fun AppRoot(
     val message by viewModel.message.collectAsState()
     val accountPickerRequest by viewModel.accountPickerRequest.collectAsState()
     val pawprintsBalance by viewModel.pawprintsBalance.collectAsState()
+    // Lifetime total, distinct from the spendable balance above: Fun Facts
+    // shows what was earned ever, the top bar shows what's left to spend.
+    val pawprintsEarnedTotal by viewModel.pawprintsEarnedTotal.collectAsState()
     val unlockedCoachIds by viewModel.unlockedCoachIds.collectAsState()
     val selectedCoachId by viewModel.selectedCoachId.collectAsState()
     val unlockedOutfits by viewModel.unlockedOutfits.collectAsState()
@@ -123,6 +126,7 @@ fun AppRoot(
                     log = log,
                     selectedCoachId = selectedCoachId,
                     equippedOutfits = equippedOutfits,
+                    pawprintsEarnedTotal = pawprintsEarnedTotal,
                     onBack = { screen = "main" },
                 )
 

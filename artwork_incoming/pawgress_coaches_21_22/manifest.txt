@@ -1,0 +1,24 @@
+Pawgress coaches 21 and 22
+Format: PNG, 1024x1024, transparent alpha background
+
+mascot-21.png	Yip Yip base
+coach-21-newyear.png	Yip Yip newyear
+coach-21-valentine.png	Yip Yip valentine
+coach-21-spring.png	Yip Yip spring
+coach-21-summer.png	Yip Yip summer
+coach-21-backtoschool.png	Yip Yip backtoschool
+coach-21-halloween.png	Yip Yip halloween
+coach-21-thanksgiving.png	Yip Yip thanksgiving
+coach-21-winterholiday.png	Yip Yip winterholiday
+mascot-22.png	Coach Tiny base
+coach-22-newyear.png	Coach Tiny newyear
+coach-22-valentine.png	Coach Tiny valentine
+coach-22-spring.png	Coach Tiny spring
+coach-22-summer.png	Coach Tiny summer
+coach-22-backtoschool.png	Coach Tiny backtoschool
+coach-22-halloween.png	Coach Tiny halloween
+coach-22-thanksgiving.png	Coach Tiny thanksgiving
+coach-22-winterholiday.png	Coach Tiny winterholiday
+
+Coach Tiny working name: Coach Tiny One Fuzzy Pants Catnip Everpe
+The working name remains editable in application data and is not embedded in the images.
