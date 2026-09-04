@@ -118,6 +118,8 @@ object MachineCatalog {
             MachineGroup.UPPER, visible = false, equipment = Equipment.FREE_WEIGHT),
         Seed("dumbbell_shoulder_press", "Dumbbell Shoulder Press", "dumbbell_shoulder_press",
             MachineGroup.UPPER, visible = false, equipment = Equipment.FREE_WEIGHT),
+        Seed("arnold_press", "Arnold Press", "arnold_press",
+            MachineGroup.UPPER, visible = false, equipment = Equipment.FREE_WEIGHT),
         Seed("barbell_bent_over_row", "Barbell Bent-Over Row", "barbell_bent_over_row",
             MachineGroup.UPPER, visible = false, equipment = Equipment.FREE_WEIGHT),
         Seed("one_arm_dumbbell_row", "One-Arm Dumbbell Row", "one_arm_dumbbell_row",
@@ -177,7 +179,7 @@ object MachineCatalog {
         "overhead_triceps_extension", "farmer_carry", "suitcase_carry",
         "weighted_plank", "russian_twist",
         "dumbbell_lateral_raise", "straight_bar_biceps_curl",
-        "barbell_good_morning",
+        "barbell_good_morning", "arnold_press",
     )
 
     fun defaults(): List<Machine> = SEEDS.mapIndexed { index, seed ->

@@ -2,6 +2,7 @@ package com.balandman.pawgress.ui
 
 import com.balandman.pawgress.resources.Res
 import com.balandman.pawgress.resources.art_ab_crunch
+import com.balandman.pawgress.resources.art_arnold_press
 import com.balandman.pawgress.resources.art_assist_dip_chin
 import com.balandman.pawgress.resources.art_back_extension
 import com.balandman.pawgress.resources.art_back_squat
@@ -276,6 +277,7 @@ object MachineIcons {
         "cable_face_pull" to Res.drawable.art_cable_face_pull,
         "dumbbell_lateral_raise" to Res.drawable.art_dumbbell_lateral_raise,
         "straight_bar_biceps_curl" to Res.drawable.art_straight_bar_biceps_curl,
+        "arnold_press" to Res.drawable.art_arnold_press,
     )
 
     /** The illustrated artwork for a key, or null when only the line icon exists. */
