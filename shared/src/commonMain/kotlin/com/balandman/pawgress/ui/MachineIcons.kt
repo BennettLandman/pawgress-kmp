@@ -4,47 +4,76 @@ import com.balandman.pawgress.resources.Res
 import com.balandman.pawgress.resources.art_ab_crunch
 import com.balandman.pawgress.resources.art_assist_dip_chin
 import com.balandman.pawgress.resources.art_back_extension
+import com.balandman.pawgress.resources.art_back_squat
 import com.balandman.pawgress.resources.art_barbell
+import com.balandman.pawgress.resources.art_barbell_bench_press
+import com.balandman.pawgress.resources.art_barbell_bent_over_row
 import com.balandman.pawgress.resources.art_bench_press
 import com.balandman.pawgress.resources.art_biceps_curl
 import com.balandman.pawgress.resources.art_cable
 import com.balandman.pawgress.resources.art_chest_press
+import com.balandman.pawgress.resources.art_chest_supported_row
+import com.balandman.pawgress.resources.art_deadlift
 import com.balandman.pawgress.resources.art_dip
 import com.balandman.pawgress.resources.art_dumbbell
+import com.balandman.pawgress.resources.art_dumbbell_bench_press
+import com.balandman.pawgress.resources.art_dumbbell_curl
+import com.balandman.pawgress.resources.art_dumbbell_shoulder_press
+import com.balandman.pawgress.resources.art_farmer_carry
 import com.balandman.pawgress.resources.art_farmers_carry
 import com.balandman.pawgress.resources.art_fixed_pulldown
+import com.balandman.pawgress.resources.art_floor_press
+import com.balandman.pawgress.resources.art_forward_lunge
+import com.balandman.pawgress.resources.art_front_squat
+import com.balandman.pawgress.resources.art_goblet_squat
 import com.balandman.pawgress.resources.art_hack_squat
+import com.balandman.pawgress.resources.art_hammer_curl
 import com.balandman.pawgress.resources.art_hip_abduction
 import com.balandman.pawgress.resources.art_hip_adduction
 import com.balandman.pawgress.resources.art_hip_and_glute
+import com.balandman.pawgress.resources.art_hip_thrust
 import com.balandman.pawgress.resources.art_horizontal_calf
 import com.balandman.pawgress.resources.art_incline_press
 import com.balandman.pawgress.resources.art_kettlebell
+import com.balandman.pawgress.resources.art_kettlebell_deadlift
 import com.balandman.pawgress.resources.art_lat_pulldown
 import com.balandman.pawgress.resources.art_lateral_raise
 import com.balandman.pawgress.resources.art_leg_curl
 import com.balandman.pawgress.resources.art_leg_extension
 import com.balandman.pawgress.resources.art_leg_lift
 import com.balandman.pawgress.resources.art_machine
+import com.balandman.pawgress.resources.art_one_arm_dumbbell_row
+import com.balandman.pawgress.resources.art_overhead_triceps_extension
 import com.balandman.pawgress.resources.art_pec_fly
 import com.balandman.pawgress.resources.art_pec_fly_rear_delt
 import com.balandman.pawgress.resources.art_plate
 import com.balandman.pawgress.resources.art_preacher_curl
 import com.balandman.pawgress.resources.art_pullup
 import com.balandman.pawgress.resources.art_rear_delt
+import com.balandman.pawgress.resources.art_reverse_lunge
+import com.balandman.pawgress.resources.art_romanian_deadlift
 import com.balandman.pawgress.resources.art_run
+import com.balandman.pawgress.resources.art_russian_twist
 import com.balandman.pawgress.resources.art_seated_leg_curl
 import com.balandman.pawgress.resources.art_seated_leg_press
 import com.balandman.pawgress.resources.art_seated_row
 import com.balandman.pawgress.resources.art_shoulder_press
 import com.balandman.pawgress.resources.art_shrug
 import com.balandman.pawgress.resources.art_shuttle_run
+import com.balandman.pawgress.resources.art_skull_crusher
+import com.balandman.pawgress.resources.art_split_squat
 import com.balandman.pawgress.resources.art_squat
 import com.balandman.pawgress.resources.art_standing_calf
+import com.balandman.pawgress.resources.art_standing_calf_raise
+import com.balandman.pawgress.resources.art_standing_overhead_press
+import com.balandman.pawgress.resources.art_step_up
+import com.balandman.pawgress.resources.art_suitcase_carry
 import com.balandman.pawgress.resources.art_tbar_row
 import com.balandman.pawgress.resources.art_torso_rotation
 import com.balandman.pawgress.resources.art_triceps_extension
 import com.balandman.pawgress.resources.art_triceps_pushdown
+import com.balandman.pawgress.resources.art_weighted_glute_bridge
+import com.balandman.pawgress.resources.art_weighted_plank
 import com.balandman.pawgress.resources.art_woodchop
 import com.balandman.pawgress.resources.ic_m_ab_crunch
 import com.balandman.pawgress.resources.ic_m_assist_dip_chin
@@ -206,6 +235,39 @@ object MachineIcons {
         "triceps_extension" to Res.drawable.art_triceps_extension,
         "triceps_pushdown" to Res.drawable.art_triceps_pushdown,
         "woodchop" to Res.drawable.art_woodchop,
+
+        // Free-weight exercises. There is no ic_m_* line icon for these, so
+        // turning a machine's "illustrated" flag off falls back to the generic
+        // dumbbell via resFor() rather than to a bespoke drawing.
+        "back_squat" to Res.drawable.art_back_squat,
+        "barbell_bench_press" to Res.drawable.art_barbell_bench_press,
+        "barbell_bent_over_row" to Res.drawable.art_barbell_bent_over_row,
+        "chest_supported_row" to Res.drawable.art_chest_supported_row,
+        "deadlift" to Res.drawable.art_deadlift,
+        "dumbbell_bench_press" to Res.drawable.art_dumbbell_bench_press,
+        "dumbbell_curl" to Res.drawable.art_dumbbell_curl,
+        "dumbbell_shoulder_press" to Res.drawable.art_dumbbell_shoulder_press,
+        "farmer_carry" to Res.drawable.art_farmer_carry,
+        "floor_press" to Res.drawable.art_floor_press,
+        "forward_lunge" to Res.drawable.art_forward_lunge,
+        "front_squat" to Res.drawable.art_front_squat,
+        "goblet_squat" to Res.drawable.art_goblet_squat,
+        "hammer_curl" to Res.drawable.art_hammer_curl,
+        "hip_thrust" to Res.drawable.art_hip_thrust,
+        "kettlebell_deadlift" to Res.drawable.art_kettlebell_deadlift,
+        "one_arm_dumbbell_row" to Res.drawable.art_one_arm_dumbbell_row,
+        "overhead_triceps_extension" to Res.drawable.art_overhead_triceps_extension,
+        "reverse_lunge" to Res.drawable.art_reverse_lunge,
+        "romanian_deadlift" to Res.drawable.art_romanian_deadlift,
+        "russian_twist" to Res.drawable.art_russian_twist,
+        "skull_crusher" to Res.drawable.art_skull_crusher,
+        "split_squat" to Res.drawable.art_split_squat,
+        "standing_calf_raise" to Res.drawable.art_standing_calf_raise,
+        "standing_overhead_press" to Res.drawable.art_standing_overhead_press,
+        "step_up" to Res.drawable.art_step_up,
+        "suitcase_carry" to Res.drawable.art_suitcase_carry,
+        "weighted_glute_bridge" to Res.drawable.art_weighted_glute_bridge,
+        "weighted_plank" to Res.drawable.art_weighted_plank,
     )
 
     /** The illustrated artwork for a key, or null when only the line icon exists. */

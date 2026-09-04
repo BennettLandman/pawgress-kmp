@@ -59,6 +59,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
+import com.balandman.pawgress.data.Equipment
 import com.balandman.pawgress.data.Machine
 import com.balandman.pawgress.data.MachineCatalog
 import com.balandman.pawgress.data.MachineGroup
@@ -102,6 +103,10 @@ fun SettingsScreen(
     var confirmingResetToday by remember { mutableStateOf(false) }
     var confirmingFullReset by remember { mutableStateOf(false) }
     var confirmingRestore by remember { mutableStateOf(false) }
+    // null = no filter. Machines and free weights are two long lists; picking
+    // from them is much easier apart than together, which is the whole point
+    // of this control.
+    var equipmentFilter by remember { mutableStateOf<Equipment?>(null) }
 
     Column(Modifier.fillMaxSize()) {
         TopAppBar(
@@ -150,6 +155,31 @@ fun SettingsScreen(
                     style = MaterialTheme.typography.bodySmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                 )
+                Row(
+                    horizontalArrangement = Arrangement.spacedBy(8.dp),
+                    modifier = Modifier.padding(top = 10.dp),
+                ) {
+                    FilterChip(
+                        selected = equipmentFilter == null,
+                        onClick = { equipmentFilter = null },
+                        label = { Text("All") },
+                    )
+                    Equipment.entries.forEach { equipment ->
+                        FilterChip(
+                            selected = equipmentFilter == equipment,
+                            onClick = {
+                                equipmentFilter =
+                                    if (equipmentFilter == equipment) null else equipment
+                            },
+                            label = {
+                                Text(
+                                    if (equipment == Equipment.MACHINE) "Machines"
+                                    else "Free weights"
+                                )
+                            },
+                        )
+                    }
+                }
                 Spacer(Modifier.height(4.dp))
                 OutlinedButton(
                     onClick = { adding = true },
@@ -161,8 +191,15 @@ fun SettingsScreen(
                 }
             }
 
+            // "Show all"/"Hide all" above stay global on purpose — they act on
+            // every machine, not just the filtered view. The filter is a lens on
+            // the list, not a selection.
+            val filtered = machines.filter {
+                equipmentFilter == null || it.equipment == equipmentFilter
+            }
+
             MachineGroup.entries.forEach { group ->
-                val inGroup = machines.filter { it.group == group }.sortedBy { it.sortOrder }
+                val inGroup = filtered.filter { it.group == group }.sortedBy { it.sortOrder }
                 if (inGroup.isEmpty()) return@forEach
 
                 item(key = "header_${group.name}") {

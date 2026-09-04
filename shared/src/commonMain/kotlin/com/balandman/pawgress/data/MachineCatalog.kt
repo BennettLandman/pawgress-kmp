@@ -16,6 +16,7 @@ object MachineCatalog {
         val icon: String,
         val group: MachineGroup,
         val visible: Boolean = true,
+        val equipment: Equipment = Equipment.MACHINE,
     )
 
     private val SEEDS = listOf(
@@ -76,6 +77,70 @@ object MachineCatalog {
 
         Seed("farmers_carry", "Farmer's Carry", "farmers_carry", MachineGroup.OTHER, visible = false),
         Seed("shuttle_run", "Shuttle Run", "shuttle_run", MachineGroup.OTHER, visible = false),
+
+        // ------------------------------------- free weights: legs and hips
+        Seed("back_squat", "Back Squat", "back_squat",
+            MachineGroup.LOWER, visible = false, equipment = Equipment.FREE_WEIGHT),
+        Seed("front_squat", "Front Squat", "front_squat",
+            MachineGroup.LOWER, visible = false, equipment = Equipment.FREE_WEIGHT),
+        Seed("goblet_squat", "Goblet Squat", "goblet_squat",
+            MachineGroup.LOWER, visible = false, equipment = Equipment.FREE_WEIGHT),
+        Seed("deadlift", "Deadlift", "deadlift",
+            MachineGroup.LOWER, visible = false, equipment = Equipment.FREE_WEIGHT),
+        Seed("romanian_deadlift", "Romanian Deadlift", "romanian_deadlift",
+            MachineGroup.LOWER, visible = false, equipment = Equipment.FREE_WEIGHT),
+        Seed("kettlebell_deadlift", "Kettlebell Deadlift", "kettlebell_deadlift",
+            MachineGroup.LOWER, visible = false, equipment = Equipment.FREE_WEIGHT),
+        Seed("forward_lunge", "Forward Lunge", "forward_lunge",
+            MachineGroup.LOWER, visible = false, equipment = Equipment.FREE_WEIGHT),
+        Seed("reverse_lunge", "Reverse Lunge", "reverse_lunge",
+            MachineGroup.LOWER, visible = false, equipment = Equipment.FREE_WEIGHT),
+        Seed("split_squat", "Split Squat", "split_squat",
+            MachineGroup.LOWER, visible = false, equipment = Equipment.FREE_WEIGHT),
+        Seed("step_up", "Step-Up", "step_up",
+            MachineGroup.LOWER, visible = false, equipment = Equipment.FREE_WEIGHT),
+        Seed("hip_thrust", "Hip Thrust", "hip_thrust",
+            MachineGroup.LOWER, visible = false, equipment = Equipment.FREE_WEIGHT),
+        Seed("weighted_glute_bridge", "Weighted Glute Bridge", "weighted_glute_bridge",
+            MachineGroup.LOWER, visible = false, equipment = Equipment.FREE_WEIGHT),
+        Seed("standing_calf_raise", "Standing Calf Raise", "standing_calf_raise",
+            MachineGroup.LOWER, visible = false, equipment = Equipment.FREE_WEIGHT),
+
+        // ------------------------------ free weights: chest, back and arms
+        Seed("barbell_bench_press", "Barbell Bench Press", "barbell_bench_press",
+            MachineGroup.UPPER, visible = false, equipment = Equipment.FREE_WEIGHT),
+        Seed("dumbbell_bench_press", "Dumbbell Bench Press", "dumbbell_bench_press",
+            MachineGroup.UPPER, visible = false, equipment = Equipment.FREE_WEIGHT),
+        Seed("floor_press", "Floor Press", "floor_press",
+            MachineGroup.UPPER, visible = false, equipment = Equipment.FREE_WEIGHT),
+        Seed("standing_overhead_press", "Standing Overhead Press", "standing_overhead_press",
+            MachineGroup.UPPER, visible = false, equipment = Equipment.FREE_WEIGHT),
+        Seed("dumbbell_shoulder_press", "Dumbbell Shoulder Press", "dumbbell_shoulder_press",
+            MachineGroup.UPPER, visible = false, equipment = Equipment.FREE_WEIGHT),
+        Seed("barbell_bent_over_row", "Barbell Bent-Over Row", "barbell_bent_over_row",
+            MachineGroup.UPPER, visible = false, equipment = Equipment.FREE_WEIGHT),
+        Seed("one_arm_dumbbell_row", "One-Arm Dumbbell Row", "one_arm_dumbbell_row",
+            MachineGroup.UPPER, visible = false, equipment = Equipment.FREE_WEIGHT),
+        Seed("chest_supported_row", "Chest-Supported Row", "chest_supported_row",
+            MachineGroup.UPPER, visible = false, equipment = Equipment.FREE_WEIGHT),
+        Seed("dumbbell_curl", "Dumbbell Curl", "dumbbell_curl",
+            MachineGroup.UPPER, visible = false, equipment = Equipment.FREE_WEIGHT),
+        Seed("hammer_curl", "Hammer Curl", "hammer_curl",
+            MachineGroup.UPPER, visible = false, equipment = Equipment.FREE_WEIGHT),
+        Seed("skull_crusher", "Skull Crusher", "skull_crusher",
+            MachineGroup.UPPER, visible = false, equipment = Equipment.FREE_WEIGHT),
+        Seed("overhead_triceps_extension", "Overhead Triceps Extension", "overhead_triceps_extension",
+            MachineGroup.UPPER, visible = false, equipment = Equipment.FREE_WEIGHT),
+
+        // ------------------------------------------- free weights: carries and core
+        Seed("farmer_carry", "Dumbbell Farmer Carry", "farmer_carry",
+            MachineGroup.CORE, visible = false, equipment = Equipment.FREE_WEIGHT),
+        Seed("suitcase_carry", "Suitcase Carry", "suitcase_carry",
+            MachineGroup.CORE, visible = false, equipment = Equipment.FREE_WEIGHT),
+        Seed("weighted_plank", "Weighted Plank", "weighted_plank",
+            MachineGroup.CORE, visible = false, equipment = Equipment.FREE_WEIGHT),
+        Seed("russian_twist", "Russian Twist", "russian_twist",
+            MachineGroup.CORE, visible = false, equipment = Equipment.FREE_WEIGHT),
     )
 
     /** Every icon a custom machine can pick from. */
@@ -91,6 +156,17 @@ object MachineCatalog {
         "seated_leg_press", "seated_leg_curl", "squat",
         "ab_crunch", "back_extension", "leg_lift", "torso_rotation", "woodchop",
         "farmers_carry", "shuttle_run",
+        // free weights
+        "back_squat", "front_squat", "goblet_squat",
+        "deadlift", "romanian_deadlift", "kettlebell_deadlift",
+        "forward_lunge", "reverse_lunge", "split_squat",
+        "step_up", "hip_thrust", "weighted_glute_bridge",
+        "standing_calf_raise", "barbell_bench_press", "dumbbell_bench_press",
+        "floor_press", "standing_overhead_press", "dumbbell_shoulder_press",
+        "barbell_bent_over_row", "one_arm_dumbbell_row", "chest_supported_row",
+        "dumbbell_curl", "hammer_curl", "skull_crusher",
+        "overhead_triceps_extension", "farmer_carry", "suitcase_carry",
+        "weighted_plank", "russian_twist",
     )
 
     fun defaults(): List<Machine> = SEEDS.mapIndexed { index, seed ->
@@ -99,6 +175,7 @@ object MachineCatalog {
             name = seed.name,
             iconKey = seed.icon,
             group = seed.group,
+            equipment = seed.equipment,
             visible = seed.visible,
             custom = false,
             sortOrder = index,

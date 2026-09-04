@@ -3,6 +3,29 @@ package com.balandman.pawgress.data
 import kotlinx.datetime.LocalDate
 
 /** Muscle-group buckets, used only to group the settings list. */
+/**
+ * What you actually lift with.
+ *
+ * Exists so Settings can separate the machine catalogue from the free-weight
+ * one -- two long lists that are much easier to pick from apart than together.
+ * It is deliberately *not* a body area: [MachineGroup] still answers "what does
+ * this work", and the two are independent (a barbell squat and a leg press are
+ * both LOWER, but different equipment).
+ *
+ * MACHINE is the default everywhere, including when reading a saved profile
+ * written before this field existed -- every machine that predates free weights
+ * genuinely is one, so the old data needs no migration.
+ */
+enum class Equipment(val label: String) {
+    MACHINE("Machine"),
+    FREE_WEIGHT("Free weight");
+
+    companion object {
+        fun fromName(value: String?): Equipment =
+            entries.firstOrNull { it.name == value } ?: MACHINE
+    }
+}
+
 enum class MachineGroup(val label: String) {
     UPPER("Upper body"),
     CORE("Core"),
@@ -52,6 +75,8 @@ data class Machine(
     val name: String,
     val iconKey: String,
     val group: MachineGroup,
+    /** Machine or free weight. Defaults to MACHINE — see [Equipment]. */
+    val equipment: Equipment = Equipment.MACHINE,
     val visible: Boolean = true,
     val custom: Boolean = false,
     val sortOrder: Int = 0,

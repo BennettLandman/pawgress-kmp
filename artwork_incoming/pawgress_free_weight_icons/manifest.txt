@@ -1,0 +1,32 @@
+Pawgress free-weight exercise icons
+Format: PNG, 1024x1024 pixels, cream background
+
+01  back_squat.png  Back squat
+02  front_squat.png  Front squat
+03  goblet_squat.png  Goblet squat
+04  deadlift.png  Deadlift
+05  romanian_deadlift.png  Romanian deadlift
+06  kettlebell_deadlift.png  Kettlebell deadlift
+07  forward_lunge.png  Forward lunge
+08  reverse_lunge.png  Reverse lunge
+09  split_squat.png  Split squat
+10  step_up.png  Step-up
+11  barbell_bench_press.png  Barbell bench press
+12  dumbbell_bench_press.png  Dumbbell bench press
+13  floor_press.png  Floor press
+14  standing_overhead_press.png  Standing overhead press
+15  dumbbell_shoulder_press.png  Dumbbell shoulder press
+16  barbell_bent_over_row.png  Barbell bent-over row
+17  one_arm_dumbbell_row.png  One-arm dumbbell row
+18  chest_supported_row.png  Chest-supported row
+19  hip_thrust.png  Hip thrust
+20  weighted_glute_bridge.png  Weighted glute bridge
+21  dumbbell_curl.png  Dumbbell curl
+22  hammer_curl.png  Hammer curl
+23  skull_crusher.png  Skull crusher
+24  triceps_extension.png  Triceps extension
+25  standing_calf_raise.png  Standing calf raise
+26  farmer_carry.png  Farmer carry
+27  suitcase_carry.png  Suitcase carry
+28  weighted_plank.png  Weighted plank
+29  russian_twist.png  Russian twist
