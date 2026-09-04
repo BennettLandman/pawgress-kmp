@@ -96,6 +96,7 @@ fun AppRoot(
                     syncState = syncState,
                     syncing = syncing,
                     pendingCount = pendingCount,
+                    syncAvailable = viewModel.syncAvailable,
                     onBack = { screen = "main" },
                     onChooseAccount = viewModel::chooseAccount,
                     onDisconnectGoogle = viewModel::disconnect,

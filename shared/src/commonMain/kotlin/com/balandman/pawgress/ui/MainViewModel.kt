@@ -69,6 +69,9 @@ class MainViewModel(
             repo.current().machines.filter { it.visible }.sortedBy { it.sortOrder },
         )
 
+    /** False on platforms with no working Google sign-in yet (currently iOS). */
+    val syncAvailable: Boolean = syncManager.isAvailable
+
     val syncState: StateFlow<SyncState> = repo.sync
 
     val log: StateFlow<List<LogEntry>> = repo.log
@@ -189,7 +192,14 @@ class MainViewModel(
     fun fullReset() {
         autoSyncJob?.cancel()
         repo.fullReset()
-        _message.value = "All activity was cleared. Your Google Sheet history is untouched."
+        // The reassurance only makes sense where a sheet can exist. On iOS
+        // there is none, and naming one in a toast is how a user ends up
+        // hunting for a spreadsheet that was never created.
+        _message.value = if (syncAvailable) {
+            "All activity was cleared. Your Google Sheet history is untouched."
+        } else {
+            "All activity was cleared."
+        }
     }
 
     // --------------------------------------------------------------------- sync

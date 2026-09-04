@@ -28,6 +28,17 @@ sealed interface AuthOutcome {
 interface AuthProvider {
 
     /**
+     * False where this platform has no working sign-in yet.
+     *
+     * Exists so shared UI can stop offering something that cannot succeed.
+     * Without it, `SettingsScreen` — which is common code — shows an iPhone
+     * user a "Sign in with Google" button and a promise about spreadsheets,
+     * and tapping it returns "not implemented on iOS yet". Better to say so
+     * up front and point at the backup route that does work there.
+     */
+    val isSupported: Boolean
+
+    /**
      * Returns a token straight away if consent was already granted for this
      * account, without showing any UI — this is also the "refresh an expired
      * token" path. Returns `null` (not [AuthOutcome.Failure]) specifically

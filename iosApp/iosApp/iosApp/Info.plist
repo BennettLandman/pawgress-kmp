@@ -4,5 +4,17 @@
 <dict>
 	<key>CADisableMinimumFrameDurationOnPhone</key>
 	<true/>
+	<!-- Exposes this app's Documents folder in the Files app, under
+	     "On My iPhone > Pawgress". IosAppFileStorage already writes
+	     pawgress.json there, so this is the whole of the iOS backup story:
+	     copy the file out to back up, drop it back in to restore. No account,
+	     no network, no OAuth. -->
+	<key>UIFileSharingEnabled</key>
+	<true/>
+	<!-- Lets the user edit the file in place rather than the system handing
+	     apps a temporary copy. Without it, Files shows the folder but a
+	     "restore" would not actually replace what the app reads. -->
+	<key>LSSupportsOpeningDocumentsInPlace</key>
+	<true/>
 </dict>
 </plist>

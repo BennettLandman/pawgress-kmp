@@ -76,6 +76,11 @@ fun SettingsScreen(
     syncState: SyncState,
     syncing: Boolean,
     pendingCount: Int,
+    // False on platforms where signing in can't succeed yet (iOS). The whole
+    // Google card is replaced by one describing the backup route that DOES
+    // work there, rather than offering a button that returns "not
+    // implemented". See AuthProvider.isSupported.
+    syncAvailable: Boolean,
     onBack: () -> Unit,
     onChooseAccount: () -> Unit,
     onDisconnectGoogle: () -> Unit,
@@ -131,16 +136,20 @@ fun SettingsScreen(
             verticalArrangement = Arrangement.spacedBy(8.dp),
         ) {
             item {
-                GoogleCard(
-                    syncState = syncState,
-                    syncing = syncing,
-                    pendingCount = pendingCount,
-                    onChooseAccount = onChooseAccount,
-                    onDisconnect = onDisconnectGoogle,
-                    onSyncNow = onSyncNow,
-                    onRestore = { confirmingRestore = true },
-                    onOpenUrl = onOpenUrl,
-                )
+                if (syncAvailable) {
+                    GoogleCard(
+                        syncState = syncState,
+                        syncing = syncing,
+                        pendingCount = pendingCount,
+                        onChooseAccount = onChooseAccount,
+                        onDisconnect = onDisconnectGoogle,
+                        onSyncNow = onSyncNow,
+                        onRestore = { confirmingRestore = true },
+                        onOpenUrl = onOpenUrl,
+                    )
+                } else {
+                    FilesBackupCard()
+                }
             }
 
             item {
@@ -381,6 +390,60 @@ fun SettingsScreen(
                 editing = null
             },
         )
+    }
+}
+
+/**
+ * What Settings shows in place of the Google card where sign-in isn't
+ * available (iOS today).
+ *
+ * There is nothing to tap here on purpose. The whole mechanism lives in
+ * Info.plist: UIFileSharingEnabled + LSSupportsOpeningDocumentsInPlace put
+ * the app's Documents folder -- which is exactly where IosAppFileStorage
+ * writes pawgress.json -- into the Files app. So the "feature" is a set of
+ * instructions, and the honest thing to do is print them rather than build a
+ * button that duplicates what Files already does well.
+ */
+@Composable
+private fun FilesBackupCard() {
+    Card(
+        colors = CardDefaults.cardColors(
+            containerColor = MaterialTheme.colorScheme.surfaceVariant,
+        ),
+        modifier = Modifier.fillMaxWidth(),
+    ) {
+        Column(Modifier.padding(16.dp)) {
+            Text("Backup", style = MaterialTheme.typography.titleMedium)
+            Spacer(Modifier.height(4.dp))
+            Text(
+                "Everything you log stays on this phone, in a single file. " +
+                    "Open the Files app and go to Browse \u2192 On My iPhone \u2192 " +
+                    "Pawgress to find it.",
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+            )
+            Spacer(Modifier.height(10.dp))
+            Text(
+                "To back up: copy pawgress.json somewhere safe \u2014 iCloud Drive, " +
+                    "email it to yourself, AirDrop it to a laptop.",
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+            )
+            Spacer(Modifier.height(6.dp))
+            Text(
+                "To restore: force-quit Pawgress, copy your saved pawgress.json " +
+                    "back into that folder replacing the one there, then reopen the app.",
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+            )
+            Spacer(Modifier.height(10.dp))
+            Text(
+                "Signing in with Google to mirror your lifts into a spreadsheet " +
+                    "works on Android and isn\u2019t built for iPhone yet.",
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+            )
+        }
     }
 }
 

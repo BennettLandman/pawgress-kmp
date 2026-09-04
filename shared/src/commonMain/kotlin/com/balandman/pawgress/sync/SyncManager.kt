@@ -40,6 +40,9 @@ class SyncManager(
     private val api: SheetsApi = SheetsApi(),
 ) {
 
+    /** Whether this platform can sign in at all — see [AuthProvider.isSupported]. */
+    val isAvailable: Boolean get() = auth.isSupported
+
     private val mutex = Mutex()
 
     /**

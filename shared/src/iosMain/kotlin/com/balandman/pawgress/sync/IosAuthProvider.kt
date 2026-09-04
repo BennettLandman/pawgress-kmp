@@ -28,6 +28,8 @@ package com.balandman.pawgress.sync
  */
 class IosAuthProvider : AuthProvider {
 
+    override val isSupported: Boolean = false
+
     override suspend fun silentAuthorize(accountHint: String?): AuthOutcome? = null
 
     override suspend fun requestConsent(accountHint: String?): AuthOutcome =

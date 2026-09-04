@@ -25,6 +25,8 @@ class AndroidAuthProvider(
     private val consentLauncher: ConsentLauncher,
 ) : AuthProvider {
 
+    override val isSupported: Boolean = true
+
     override suspend fun silentAuthorize(accountHint: String?): AuthOutcome? =
         when (val outcome = rawAuthorize(accountHint?.let { Account(it, GOOGLE_ACCOUNT_TYPE) })) {
             is RawOutcome.Success -> AuthOutcome.Success(outcome.token)
