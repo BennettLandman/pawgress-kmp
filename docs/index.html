@@ -54,6 +54,21 @@
     margin: 1.5rem 0;
   }
   .card h2 { margin-top: 0; }
+  /* Two phone shots side by side, stacking on narrow screens. The images are
+     tall (390x844), so a max-height keeps them from dominating the page on a
+     desktop while still being legible. */
+  .shots {
+    display: flex; gap: 1.25rem; justify-content: center;
+    flex-wrap: wrap; margin: 2rem 0 2.5rem;
+  }
+  .shots figure { margin: 0; text-align: center; max-width: 240px; }
+  .shots img {
+    width: 100%; height: auto; max-height: 520px; display: block;
+    border-radius: 22px;
+  }
+  .shots figcaption {
+    color: var(--ink-soft); font-size: 0.85rem; margin-top: 0.5rem;
+  }
   footer {
     margin-top: 3.5rem;
     padding-top: 1.5rem;
@@ -88,6 +103,22 @@
     machine last time?</em> No reps, no sets, no rest timers — one number per
     machine per gym day.
   </p>
+
+  <div class="shots">
+    <figure>
+      <img src="img/screen-main.svg"
+           alt="The Pawgress main grid: a tile per machine, each with a cartoon
+                cat illustration, the last weight lifted, and the machine name.">
+      <figcaption>Your circuit, at a glance</figcaption>
+    </figure>
+    <figure>
+      <img src="img/screen-log.svg"
+           alt="Logging a lift: a large illustration of a cat on a chest press,
+                the weight 130 lb with minus-five and plus-five buttons, a
+                slider, and a Confirm button.">
+      <figcaption>One tap to confirm last time's weight</figcaption>
+    </figure>
+  </div>
 
   <h2>How it works</h2>
   <ul>

@@ -5,8 +5,21 @@ These are hand-built SVG recreations of the real screens -- not device
 captures. Every colour below is lifted from ui/theme/Theme.kt and every label
 from the actual composables, so the pictures stay honest about what the app
 looks like. Re-run this script after a UI change: python3 _gen_mockups.py
+
+The exercise and coach pictures are NOT drawn here -- they are the real
+shipping artwork, read straight out of shared/'s composeResources, downscaled
+and inlined as data: URIs (see `art()`). An illustration of Pawgress without
+the cats in it is a picture of the wrong app: the drawings are most of what
+the interface is. Inlining rather than linking is required, because an SVG
+loaded through <img src> may not fetch external files.
+
+Needs Pillow: pip3 install --user pillow
 """
+import base64
+import io as _io
 import os
+
+from PIL import Image
 
 W, H = 390, 844
 FONT = "-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif"
@@ -21,6 +34,62 @@ C = dict(
 GROUP = dict(upper="#B96756", core="#6E7F76", lower="#978DAE", other="#8A968E")
 DIFF = dict(very_easy="#6E9E78", easy="#A3C4A0", about="#C9BE8E",
             hard="#E0954F", very_hard="#C1543A")
+
+
+ART_DIR = os.path.join(
+    os.path.dirname(os.path.abspath(__file__)),
+    "..", "shared", "src", "commonMain", "composeResources", "drawable")
+
+_ART_CACHE = {}
+_CLIP_N = [0]
+
+
+def art_uri(name, px):
+    """The real `<name>.webp` from composeResources, downscaled to `px` square
+    and returned as a data: URI.
+
+    Downscaling is the point: the shipping art is 800px (512px for the
+    mascots), and a page carrying fifteen of those at full size would be
+    several megabytes to show them at 58px. Cached, since the same picture is
+    often used twice."""
+    key = (name, px)
+    if key not in _ART_CACHE:
+        src = os.path.join(ART_DIR, name + ".webp")
+        if not os.path.exists(src):
+            raise SystemExit("missing artwork: %s" % src)
+        im = Image.open(src)
+        im = im.convert("RGBA" if im.mode in ("RGBA", "LA", "P") else "RGB")
+        im = im.resize((px, px), Image.LANCZOS)
+        buf = _io.BytesIO()
+        im.save(buf, "WEBP", quality=82, method=6)
+        _ART_CACHE[key] = ("data:image/webp;base64,"
+                           + base64.b64encode(buf.getvalue()).decode())
+    return _ART_CACHE[key]
+
+
+def art(name, x, y, w, h=None, r=None, px=None, fit="meet"):
+    """Place real artwork.
+
+    `fit="meet"` reproduces MachineArt's behaviour -- the square picture is
+    fitted inside the box and the cream chip shows through around it, rather
+    than being cropped. `r` rounds the corners via a clipPath, needed only
+    when the art is filling its own rounded box.
+
+    Both `href` and `xlink:href` are written: Safari has historically wanted
+    the latter, and a picture that silently fails to appear in one browser is
+    worse than four extra characters."""
+    h = h or w
+    src = art_uri(name, px or int(max(w, h) * 2))
+    attrs = (f'x="{x}" y="{y}" width="{w}" height="{h}" '
+             f'preserveAspectRatio="xMidYMid {fit}" '
+             f'href="{src}" xlink:href="{src}"')
+    if r is None:
+        return f'<image {attrs}/>'
+    _CLIP_N[0] += 1
+    cid = f"clip{_CLIP_N[0]}"
+    return (f'<clipPath id="{cid}"><rect x="{x}" y="{y}" width="{w}" '
+            f'height="{h}" rx="{r}"/></clipPath>'
+            f'<image clip-path="url(#{cid})" {attrs}/>')
 
 
 def esc(s):
@@ -73,22 +142,6 @@ def paw(cx, cy, s=1.0, fill=None):
     ])
 
 
-def cat(cx, cy, r, body="#C9BEA8", ink="#3A3630"):
-    """A simple cat portrait standing in for the mascot artwork."""
-    return "".join([
-        pth(f"M{cx-r*0.72},{cy-r*0.34} L{cx-r*0.86},{cy-r*1.06} "
-            f"L{cx-r*0.18},{cy-r*0.72} Z", fill=body),
-        pth(f"M{cx+r*0.72},{cy-r*0.34} L{cx+r*0.86},{cy-r*1.06} "
-            f"L{cx+r*0.18},{cy-r*0.72} Z", fill=body),
-        ell(cx, cy, r * 0.92, r * 0.82, body),
-        ell(cx - r * 0.32, cy - r * 0.08, r * 0.1, r * 0.14, ink),
-        ell(cx + r * 0.32, cy - r * 0.08, r * 0.1, r * 0.14, ink),
-        ell(cx, cy + r * 0.22, r * 0.09, r * 0.07, ink),
-        ln(cx, cy + r * 0.3, cx - r * 0.18, cy + r * 0.44, ink, 1.4),
-        ln(cx, cy + r * 0.3, cx + r * 0.18, cy + r * 0.44, ink, 1.4),
-    ])
-
-
 def gear(cx, cy, r, fill):
     out = [circ(cx, cy, r * 0.62, "none", fill, r * 0.34)]
     import math
@@ -122,7 +175,8 @@ def status_bar():
 
 
 def frame(body, label=""):
-    return (f'<svg xmlns="http://www.w3.org/2000/svg" width="{W}" height="{H}" '
+    return (f'<svg xmlns="http://www.w3.org/2000/svg" '
+            f'xmlns:xlink="http://www.w3.org/1999/xlink" width="{W}" height="{H}" '
             f'viewBox="0 0 {W} {H}" role="img" aria-label="{esc(label)}">'
             f'<rect width="{W}" height="{H}" rx="30" fill="{C["bg"]}"/>'
             f'{status_bar()}{body}'
@@ -164,31 +218,6 @@ def write(name, svg):
 
 
 # ------------------------------------------------------------------ 1. grid
-def machine_glyph(cx, cy, kind):
-    """Small abstract equipment marks, in the spirit of MachineArt."""
-    i = C["ink"]
-    if kind == 0:      # bench press
-        return (ln(cx - 15, cy - 6, cx + 15, cy - 6, i, 2.6) +
-                circ(cx - 15, cy - 6, 3.4, i) + circ(cx + 15, cy - 6, 3.4, i) +
-                rr(cx - 9, cy + 3, 18, 5, 2.5, i))
-    if kind == 1:      # lat pulldown
-        return (ln(cx, cy - 13, cx, cy - 2, i, 2.2) +
-                ln(cx - 11, cy - 2, cx + 11, cy - 2, i, 2.6) +
-                rr(cx - 7, cy + 6, 14, 6, 2.5, i))
-    if kind == 2:      # leg press
-        return (rr(cx - 13, cy - 10, 11, 20, 3, i) +
-                ln(cx - 1, cy + 6, cx + 13, cy - 6, i, 2.6) +
-                circ(cx + 13, cy - 6, 3.2, i))
-    if kind == 3:      # dumbbell
-        return (ln(cx - 8, cy, cx + 8, cy, i, 2.4) +
-                rr(cx - 14, cy - 6, 6, 12, 2, i) + rr(cx + 8, cy - 6, 6, 12, 2, i))
-    if kind == 4:      # cable row
-        return (circ(cx - 10, cy - 8, 3.2, i) +
-                pth(f"M{cx-10},{cy-5} Q{cx},{cy+2} {cx+11},{cy-3}", stroke=i, sw=2) +
-                rr(cx - 13, cy + 6, 26, 5, 2.5, i))
-    return (circ(cx, cy - 5, 5, i) + rr(cx - 10, cy + 3, 20, 6, 3, i))
-
-
 def screen_main():
     b = [
         t(20, 78, "Pawgress", 21, C["on"], weight="600"),
@@ -209,6 +238,13 @@ def screen_main():
     groups = ["upper", "upper", "lower", "upper", "upper", "lower",
               "upper", "upper", "core", "lower", "upper", "lower",
               "lower", "upper", "core"]
+    # Artwork keys, matching the names above one-for-one. These are the real
+    # files in composeResources -- change a name here and the generator will
+    # stop with "missing artwork" rather than quietly drawing a blank.
+    keys = ["chest_press", "lat_pulldown", "seated_leg_press", "shoulder_press",
+            "seated_row", "leg_curl", "pec_fly", "triceps_pushdown", "ab_crunch",
+            "leg_extension", "biceps_curl", "standing_calf", "hip_abduction",
+            "rear_delt", "torso_rotation"]
     weights = [130, 95, 210, 65, 110, 85, 70, 55, 90, 120, 40, 160, 75, 45, 100]
     done = [True, True, False, True, False, False, False, False, False,
             False, False, False, False, False, False]
@@ -228,7 +264,7 @@ def screen_main():
         b.append(circ(x + tw - 11, y + 11, 3.6, GROUP[groups[idx]]))
         # artwork chip
         b.append(rr(x + 11, y + 10, tw - 22, 58, 11, C["chip"]))
-        b.append(machine_glyph(x + tw / 2, y + 39, idx % 6))
+        b.append(art("art_" + keys[idx], x + tw / 2 - 29, y + 10, 58))
         # weight
         wy = y + 96
         b.append(t(x + 11, wy, str(weights[idx]), 25,
@@ -253,12 +289,9 @@ def screen_log():
         t(20, 96, "Tue, Sep 3  ·  4 of 22 done", 11.5, "#C4BFB5"),
         rr(0, 132, W, H - 132, 26, C["bg"]),
         rr(W / 2 - 20, 144, 40, 4.5, 2.3, C["outlineV"]),
-        # hero artwork
+        # hero artwork -- the 192dp image the real LogSheet shows
         rr(W / 2 - 88, 164, 176, 150, 22, C["chip"]),
-        ln(W / 2 - 46, 232, W / 2 + 46, 232, C["ink"], 7),
-        circ(W / 2 - 52, 232, 10, C["ink"]), circ(W / 2 + 52, 232, 10, C["ink"]),
-        rr(W / 2 - 30, 250, 60, 15, 7, C["ink"]),
-        rr(W / 2 - 9, 205, 18, 30, 6, C["ink"]),
+        art("art_chest_press", W / 2 - 75, 164, 150),
         t(W / 2, 336, "Chest Press", 17, C["on"], "middle", "600"),
         # step buttons + weight
         circ(58, 386, 27, "none", C["outline"], 1.4),
@@ -301,7 +334,7 @@ def screen_funfacts():
     b.append(ch)
     # mascot card
     b += [card(16, 146, 358, 176, C["tertiaryC"]),
-          cat(84, 226, 46),
+          art("mascot_01", 84 - 52, 226 - 52, 104),
           t(84, 296, "Coach Moose", 12, C["muted"], "middle", "600")]
     bx, by, bw, bh = 146, 176, 212, 104
     b += [rr(bx, by, bw, bh, 15, C["white"], C["outlineV"], 1),
@@ -389,25 +422,24 @@ def screen_coaches():
     # banner of coaches
     b.append(rr(16, 104, 358, 84, 16, C["tertiaryC"]))
     for i in range(6):
-        b.append(cat(48 + i * 60, 146, 24,
-                     ["#C9BEA8", "#A8B6AE", "#C6B0A0", "#B3A9C2", "#D0C2A6", "#9FB3A8"][i]))
+        b.append(art("mascot_%02d" % (i + 1), 48 + i * 60 - 27, 146 - 27, 54))
     b += [t(20, 210, "Earn one pawprint per machine, per gym day, and", 11.5, C["muted"]),
           t(20, 226, "spend them here on new coaches and outfits.", 11.5, C["muted"]),
           t(20, 250, "Coaches are cosmetic and just for fun — cartoon cats", 10.5, C["muted"]),
           t(20, 264, "whose encouragement is picked at random, not real", 10.5, C["muted"]),
           t(20, 278, "trainers, and not advice about what to lift.", 10.5, C["muted"])]
     cards_ = [("Coach Moose", "Maine Coon", "Gentle giant — patient, steady hype",
-               "selected", "#C9BEA8"),
+               "selected", "mascot_01"),
               ("Coach Noodle", "Ragdoll", "Zen, floppy-chill — consistency first",
-               "unlocked", "#A8B6AE"),
+               "unlocked", "mascot_02"),
               ("Duchess Marmalade", "Persian", "Glamorous diva — red-carpet energy",
-               "locked", "#C6B0A0")]
+               "locked", "mascot_03")]
     y = 298
     for name, breed, personality, state, col in cards_:
-        b += [card(16, y, 358, 132), cat(56, y + 42, 26, col),
+        b += [card(16, y, 358, 132), art(col, 56 - 30, y + 42 - 30, 60),
               t(94, y + 34, name, 14, C["on"], weight="600"),
               t(94, y + 52, breed, 10.5, C["muted"]),
-              t(32, y + 78, personality, 11, C["on"])]
+              t(94, y + 74, personality, 11, C["on"])]
         if state == "selected":
             b.append(check(38, y + 104, 11, C["primary"]))
             b.append(t(50, y + 108, "Selected", 12.5, C["primary"], weight="600"))
@@ -451,12 +483,15 @@ def screen_settings():
           t(300, 362, "Show all", 11, C["primary"], "end"),
           t(358, 362, "Hide all", 11, C["primary"], "end")]
 
-    rows = [("Chest Press", "upper", True), ("Lat Pulldown", "upper", True),
-            ("Leg Press", "lower", True)]
+    rows = [("Chest Press", "upper", True, "art_chest_press"),
+            ("Lat Pulldown", "upper", True, "art_lat_pulldown"),
+            ("Leg Press", "lower", True, "art_seated_leg_press")]
     y = 394
-    for name, grp, shown in rows:
-        b += [card(16, y, 358, 48), circ(38, y + 24, 4.4, GROUP[grp]),
-              t(54, y + 29, name, 12.5, C["on"] if shown else C["muted"])]
+    for name, grp, shown, key in rows:
+        b += [card(16, y, 358, 48), circ(30, y + 24, 4.4, GROUP[grp]),
+              rr(42, y + 8, 32, 32, 8, C["chip"]),
+              art(key, 42, y + 8, 32),
+              t(86, y + 29, name, 12.5, C["on"] if shown else C["muted"])]
         b += [rr(322, y + 14, 34, 20, 10, C["primary"] if shown else C["outlineV"]),
               circ(346 if shown else 332, y + 24, 8, C["white"])]
         y += 56
