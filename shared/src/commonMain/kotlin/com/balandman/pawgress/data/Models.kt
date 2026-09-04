@@ -23,6 +23,12 @@ enum class Equipment(val label: String) {
     companion object {
         fun fromName(value: String?): Equipment =
             entries.firstOrNull { it.name == value } ?: MACHINE
+
+        /** Matches the label as written in the Settings sheet, case-insensitively. */
+        fun fromLabel(value: String?): Equipment? {
+            if (value.isNullOrBlank()) return null
+            return entries.firstOrNull { it.label.equals(value.trim(), ignoreCase = true) }
+        }
     }
 }
 
@@ -239,6 +245,45 @@ data class SheetRow(
 )
 
 /** What a restore actually did, so the user sees more than just "done". */
+/**
+ * One machine's configuration, as backed up to the Settings tab.
+ *
+ * Deliberately excludes `lastWeight`, `lastLoggedAt` and `lastDifficulty`:
+ * those are derived from the log, which the Log tab already carries. Backing
+ * them up here too would give the same fact two homes that could disagree.
+ */
+data class MachineSetting(
+    val id: String,
+    val name: String,
+    val group: MachineGroup,
+    val equipment: Equipment,
+    val visible: Boolean,
+    val iconKey: String,
+    val illustrated: Boolean,
+    val sortOrder: Int,
+)
+
+/**
+ * Everything the Settings tab of the spreadsheet round-trips: how the grid is
+ * set up, and the weight dial's limits.
+ *
+ * Not included, by design: pawprints, unlocked coaches and outfits. Those stay
+ * local — the game economy living in an editable spreadsheet would make the
+ * balance whatever someone typed into it.
+ */
+data class SettingsSnapshot(
+    val machineWeights: WeightRange,
+    val freeWeightWeights: WeightRange,
+    val machines: List<MachineSetting>,
+)
+
+/** What applying a [SettingsSnapshot] actually changed. */
+data class SettingsRestoreSummary(
+    val machinesUpdated: Int,
+    val machinesCreated: Int,
+    val weightRangesChanged: Boolean,
+)
+
 data class RestoreSummary(
     val entriesAdded: Int,
     val entriesTotal: Int,

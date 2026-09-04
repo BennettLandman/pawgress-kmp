@@ -129,6 +129,16 @@ class SyncManager(
                 ?: return@withContext SyncResult.Failed(
                     "No Google Sheet connected yet — sync once first so there's something to restore from."
                 )
+            // Settings first, so that a machine the sheet knows about exists
+            // (with its real name and area) before the log rows that reference
+            // it are merged — otherwise restoreFromRows would recreate it from
+            // the log alone, with a guessed icon and no visibility setting.
+            runCatching {
+                val settingsRows = api.readSettings(token, spreadsheetId)
+                SettingsRows.fromRows(settingsRows, repo.settingsSnapshot())
+                    ?.let { repo.applySettingsSnapshot(it) }
+            }
+
             val rows = api.readAllRows(token, spreadsheetId)
             SyncResult.Restored(repo.restoreFromRows(rows))
         } catch (e: Exception) {
@@ -175,6 +185,13 @@ class SyncManager(
             if (pending.isNotEmpty()) {
                 api.appendEntries(token, sheet.id, pending)
                 repo.markSynced(pending.map { it.id })
+            }
+
+            // Best effort, and deliberately after the lifts: a settings-tab
+            // failure (an old sheet, a permissions oddity) must never fail a
+            // sync that successfully uploaded someone's workout.
+            runCatching {
+                api.writeSettings(token, sheet.id, SettingsRows.toRows(repo.settingsSnapshot()))
             }
 
             repo.recordSyncSuccess(sheet.id, sheet.url)

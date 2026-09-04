@@ -226,6 +226,81 @@ class SheetsApi(
 
     // ------------------------------------------------------------------ internals
 
+    /**
+     * Backs the profile's setup up to a second tab.
+     *
+     * Creates the tab on first use, so a spreadsheet made before this feature
+     * existed picks it up on the next sync with no migration. The whole range
+     * is cleared and rewritten rather than diffed: the block is small, and a
+     * full rewrite means a row deleted on the device actually disappears from
+     * the sheet instead of lingering.
+     */
+    suspend fun writeSettings(token: String, spreadsheetId: String, rows: List<List<String>>) {
+        ensureSettingsSheet(token, spreadsheetId)
+
+        val clearRange = "$SETTINGS_TITLE!A:J".encodeURLParameter()
+        post(
+            "https://sheets.googleapis.com/v4/spreadsheets/$spreadsheetId/values/$clearRange:clear",
+            token,
+            buildJsonObject { },
+        )
+
+        val all = listOf(SETTINGS_HEADER) + rows
+        val values = buildJsonArray {
+            all.forEach { row -> add(buildJsonArray { row.forEach { add(it) } }) }
+        }
+        val range = "$SETTINGS_TITLE!A1".encodeURLParameter()
+        put(
+            "https://sheets.googleapis.com/v4/spreadsheets/$spreadsheetId/values/$range" +
+                "?valueInputOption=USER_ENTERED",
+            token,
+            buildJsonObject { put("values", values) },
+        )
+    }
+
+    /** Rows below the header, or empty if the tab doesn't exist yet. */
+    suspend fun readSettings(token: String, spreadsheetId: String): List<List<String>> {
+        val range = "$SETTINGS_TITLE!A2:J".encodeURLParameter()
+        val body = try {
+            get(
+                "https://sheets.googleapis.com/v4/spreadsheets/$spreadsheetId/values/$range",
+                token,
+            )
+        } catch (e: Exception) {
+            // A sheet written before this feature has no Settings tab at all;
+            // that is a normal state, not a failure worth surfacing.
+            return emptyList()
+        }
+        val rows = parseObject(body).optJsonArray("values") ?: return emptyList()
+        return rows.mapNotNull { element ->
+            (element as? JsonArray)?.map { it.asStringOrNull().orEmpty() }
+        }
+    }
+
+    private suspend fun ensureSettingsSheet(token: String, spreadsheetId: String) {
+        if (sheetGid(token, spreadsheetId, SETTINGS_TITLE) != null) return
+        val requests = buildJsonArray {
+            add(
+                buildJsonObject {
+                    put(
+                        "addSheet",
+                        buildJsonObject {
+                            put(
+                                "properties",
+                                buildJsonObject { put("title", SETTINGS_TITLE) },
+                            )
+                        },
+                    )
+                },
+            )
+        }
+        post(
+            "https://sheets.googleapis.com/v4/spreadsheets/$spreadsheetId:batchUpdate",
+            token,
+            buildJsonObject { put("requests", requests) },
+        )
+    }
+
     private suspend fun appendValues(token: String, spreadsheetId: String, rows: List<List<String>>) {
         val values = buildJsonArray {
             rows.forEach { row -> add(buildJsonArray { row.forEach { add(it) } }) }
@@ -253,7 +328,11 @@ class SheetsApi(
         return null
     }
 
-    private suspend fun sheetGid(token: String, spreadsheetId: String): Int? {
+    private suspend fun sheetGid(
+        token: String,
+        spreadsheetId: String,
+        title: String = SHEET_TITLE,
+    ): Int? {
         val body = get(
             "https://sheets.googleapis.com/v4/spreadsheets/$spreadsheetId" +
                 "?fields=sheets(properties(sheetId,title))",
@@ -262,7 +341,7 @@ class SheetsApi(
         val sheets = parseObject(body).optJsonArray("sheets") ?: return null
         for (sheetElement in sheets) {
             val props = (sheetElement as? JsonObject)?.optJsonObject("properties") ?: continue
-            if (props.optString("title") == SHEET_TITLE) return props.optInt("sheetId")
+            if (props.optString("title") == title) return props.optInt("sheetId")
         }
         return null
     }
@@ -378,6 +457,15 @@ class SheetsApi(
 
     companion object {
         private const val SHEET_TITLE = "Log"
+        private const val SETTINGS_TITLE = "Settings"
+
+        // Fixed, sparse columns rather than two differently-shaped tables:
+        // one grid stays readable and hand-editable, which is the point of
+        // keeping any of this in a spreadsheet.
+        private val SETTINGS_HEADER = listOf(
+            "Type", "Id", "Name", "Area", "Equipment",
+            "Visible", "Icon", "Illustrated", "Sort", "Value",
+        )
 
         // Area and Difficulty were added after Entry ID was already column E on
         // real sheets — they go on the end rather than between Exercise and

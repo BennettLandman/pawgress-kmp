@@ -277,6 +277,96 @@ class LiftRepository(private val storage: AppFileStorage) {
         else profile.copy(machineWeights = range)
     }
 
+    // ------------------------------------------------------ settings backup
+
+    /** The current profile's setup, for writing to the sheet's Settings tab. */
+    fun settingsSnapshot(): SettingsSnapshot {
+        val profile = current()
+        return SettingsSnapshot(
+            machineWeights = profile.machineWeights,
+            freeWeightWeights = profile.freeWeightWeights,
+            machines = profile.machines.map {
+                MachineSetting(
+                    id = it.id,
+                    name = it.name,
+                    group = it.group,
+                    equipment = it.equipment,
+                    visible = it.visible,
+                    iconKey = it.iconKey,
+                    illustrated = it.illustrated,
+                    sortOrder = it.sortOrder,
+                )
+            },
+        )
+    }
+
+    /**
+     * Merge a snapshot back in, best effort.
+     *
+     * Additive and idempotent, exactly like restoring the log: a machine the
+     * sheet knows about but this device doesn't is created, one both know is
+     * updated, and one this device has but the sheet doesn't is **left alone**
+     * rather than deleted. A restore should never be able to remove things —
+     * the sheet may simply be older than the device.
+     *
+     * Logged weights and `lastLoggedAt` are untouched; only configuration
+     * moves.
+     */
+    fun applySettingsSnapshot(snapshot: SettingsSnapshot): SettingsRestoreSummary {
+        var updated = 0
+        var created = 0
+        var rangesChanged = false
+
+        mutateActive { profile ->
+            rangesChanged = profile.machineWeights != snapshot.machineWeights ||
+                profile.freeWeightWeights != snapshot.freeWeightWeights
+
+            val byId = snapshot.machines.associateBy { it.id }
+            val merged = profile.machines.map { machine ->
+                val incoming = byId[machine.id] ?: return@map machine
+                val next = machine.copy(
+                    name = incoming.name,
+                    group = incoming.group,
+                    equipment = incoming.equipment,
+                    visible = incoming.visible,
+                    iconKey = incoming.iconKey,
+                    illustrated = incoming.illustrated,
+                    sortOrder = incoming.sortOrder,
+                )
+                if (next != machine) updated++
+                next
+            }
+
+            val known = profile.machines.map { it.id }.toSet()
+            // Built once, not per addition — defaults() rebuilds every seed.
+            val catalogIds = MachineCatalog.defaults().map { seed -> seed.id }.toSet()
+            val additions = snapshot.machines.filter { it.id !in known }.map {
+                created++
+                Machine(
+                    id = it.id,
+                    name = it.name,
+                    iconKey = it.iconKey,
+                    group = it.group,
+                    equipment = it.equipment,
+                    visible = it.visible,
+                    // Anything the sheet knows that the catalogue doesn't is
+                    // by definition one the user added themselves.
+                    custom = it.id !in catalogIds,
+                    sortOrder = it.sortOrder,
+                    illustrated = it.illustrated,
+                )
+            }
+
+            profile.copy(
+                machines = merged + additions,
+                machineWeights = snapshot.machineWeights,
+                freeWeightWeights = snapshot.freeWeightWeights,
+            )
+        }
+
+        return SettingsRestoreSummary(updated, created, rangesChanged)
+    }
+
     fun rename(machineId: String, name: String) {
         val trimmed = name.trim()
         if (trimmed.isEmpty()) return
