@@ -8,9 +8,11 @@ import com.balandman.pawgress.resources.art_back_squat
 import com.balandman.pawgress.resources.art_barbell
 import com.balandman.pawgress.resources.art_barbell_bench_press
 import com.balandman.pawgress.resources.art_barbell_bent_over_row
+import com.balandman.pawgress.resources.art_barbell_good_morning
 import com.balandman.pawgress.resources.art_bench_press
 import com.balandman.pawgress.resources.art_biceps_curl
 import com.balandman.pawgress.resources.art_cable
+import com.balandman.pawgress.resources.art_cable_face_pull
 import com.balandman.pawgress.resources.art_chest_press
 import com.balandman.pawgress.resources.art_chest_supported_row
 import com.balandman.pawgress.resources.art_deadlift
@@ -18,6 +20,7 @@ import com.balandman.pawgress.resources.art_dip
 import com.balandman.pawgress.resources.art_dumbbell
 import com.balandman.pawgress.resources.art_dumbbell_bench_press
 import com.balandman.pawgress.resources.art_dumbbell_curl
+import com.balandman.pawgress.resources.art_dumbbell_lateral_raise
 import com.balandman.pawgress.resources.art_dumbbell_shoulder_press
 import com.balandman.pawgress.resources.art_farmer_carry
 import com.balandman.pawgress.resources.art_farmers_carry
@@ -67,6 +70,7 @@ import com.balandman.pawgress.resources.art_standing_calf
 import com.balandman.pawgress.resources.art_standing_calf_raise
 import com.balandman.pawgress.resources.art_standing_overhead_press
 import com.balandman.pawgress.resources.art_step_up
+import com.balandman.pawgress.resources.art_straight_bar_biceps_curl
 import com.balandman.pawgress.resources.art_suitcase_carry
 import com.balandman.pawgress.resources.art_tbar_row
 import com.balandman.pawgress.resources.art_torso_rotation
@@ -268,6 +272,10 @@ object MachineIcons {
         "suitcase_carry" to Res.drawable.art_suitcase_carry,
         "weighted_glute_bridge" to Res.drawable.art_weighted_glute_bridge,
         "weighted_plank" to Res.drawable.art_weighted_plank,
+        "barbell_good_morning" to Res.drawable.art_barbell_good_morning,
+        "cable_face_pull" to Res.drawable.art_cable_face_pull,
+        "dumbbell_lateral_raise" to Res.drawable.art_dumbbell_lateral_raise,
+        "straight_bar_biceps_curl" to Res.drawable.art_straight_bar_biceps_curl,
     )
 
     /** The illustrated artwork for a key, or null when only the line icon exists. */

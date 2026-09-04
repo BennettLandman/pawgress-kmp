@@ -141,6 +141,16 @@ object MachineCatalog {
             MachineGroup.CORE, visible = false, equipment = Equipment.FREE_WEIGHT),
         Seed("russian_twist", "Russian Twist", "russian_twist",
             MachineGroup.CORE, visible = false, equipment = Equipment.FREE_WEIGHT),
+
+        // ------------------------------------------ free weights: added later
+        Seed("dumbbell_lateral_raise", "Dumbbell Lateral Raise", "dumbbell_lateral_raise",
+            MachineGroup.UPPER, visible = false, equipment = Equipment.FREE_WEIGHT),
+        Seed("cable_face_pull", "Cable Face Pull", "cable_face_pull",
+            MachineGroup.UPPER, visible = false, equipment = Equipment.FREE_WEIGHT),
+        Seed("straight_bar_biceps_curl", "Straight-Bar Biceps Curl", "straight_bar_biceps_curl",
+            MachineGroup.UPPER, visible = false, equipment = Equipment.FREE_WEIGHT),
+        Seed("barbell_good_morning", "Barbell Good Morning", "barbell_good_morning",
+            MachineGroup.LOWER, visible = false, equipment = Equipment.FREE_WEIGHT),
     )
 
     /** Every icon a custom machine can pick from. */
@@ -167,6 +177,8 @@ object MachineCatalog {
         "dumbbell_curl", "hammer_curl", "skull_crusher",
         "overhead_triceps_extension", "farmer_carry", "suitcase_carry",
         "weighted_plank", "russian_twist",
+        "dumbbell_lateral_raise", "cable_face_pull",
+        "straight_bar_biceps_curl", "barbell_good_morning",
     )
 
     fun defaults(): List<Machine> = SEEDS.mapIndexed { index, seed ->
