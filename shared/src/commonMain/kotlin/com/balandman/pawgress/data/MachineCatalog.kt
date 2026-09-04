@@ -64,6 +64,7 @@ object MachineCatalog {
         Seed("preacher_curl", "Preacher Curl", "preacher_curl", MachineGroup.UPPER, visible = false),
         Seed("tbar_row", "T-Bar Row", "tbar_row", MachineGroup.UPPER, visible = false),
         Seed("rear_delt", "Rear Deltoid Fly", "rear_delt", MachineGroup.UPPER, visible = false),
+        Seed("cable_face_pull", "Cable Face Pull", "cable_face_pull", MachineGroup.UPPER, visible = false),
         Seed("shrug", "Shrug", "shrug", MachineGroup.UPPER, visible = false),
         Seed("pullup", "Assisted Pull-Up", "pullup", MachineGroup.UPPER, visible = false),
         Seed("dip", "Dip", "dip", MachineGroup.UPPER, visible = false),
@@ -145,8 +146,6 @@ object MachineCatalog {
         // ------------------------------------------ free weights: added later
         Seed("dumbbell_lateral_raise", "Dumbbell Lateral Raise", "dumbbell_lateral_raise",
             MachineGroup.UPPER, visible = false, equipment = Equipment.FREE_WEIGHT),
-        Seed("cable_face_pull", "Cable Face Pull", "cable_face_pull",
-            MachineGroup.UPPER, visible = false, equipment = Equipment.FREE_WEIGHT),
         Seed("straight_bar_biceps_curl", "Straight-Bar Biceps Curl", "straight_bar_biceps_curl",
             MachineGroup.UPPER, visible = false, equipment = Equipment.FREE_WEIGHT),
         Seed("barbell_good_morning", "Barbell Good Morning", "barbell_good_morning",
@@ -165,7 +164,7 @@ object MachineCatalog {
         "hip_adduction", "horizontal_calf", "leg_curl", "leg_extension",
         "seated_leg_press", "seated_leg_curl", "squat",
         "ab_crunch", "back_extension", "leg_lift", "torso_rotation", "woodchop",
-        "farmers_carry", "shuttle_run",
+        "farmers_carry", "shuttle_run", "cable_face_pull",
         // free weights
         "back_squat", "front_squat", "goblet_squat",
         "deadlift", "romanian_deadlift", "kettlebell_deadlift",
@@ -177,8 +176,8 @@ object MachineCatalog {
         "dumbbell_curl", "hammer_curl", "skull_crusher",
         "overhead_triceps_extension", "farmer_carry", "suitcase_carry",
         "weighted_plank", "russian_twist",
-        "dumbbell_lateral_raise", "cable_face_pull",
-        "straight_bar_biceps_curl", "barbell_good_morning",
+        "dumbbell_lateral_raise", "straight_bar_biceps_curl",
+        "barbell_good_morning",
     )
 
     fun defaults(): List<Machine> = SEEDS.mapIndexed { index, seed ->
